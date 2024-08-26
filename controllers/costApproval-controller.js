@@ -17,8 +17,8 @@ const createNewApproval = asynWrapper(async (req, res, next) => {
   const creator = req.user.id;
   let liquidity = false;
 
-  if(expenseAmount >= 1500) {
-    liquidity = true
+  if (expenseAmount >= 1500) {
+    liquidity = true;
   }
 
   const newExpense = await CostApproval.create({
@@ -40,7 +40,9 @@ const createNewApproval = asynWrapper(async (req, res, next) => {
 const getUserApprovals = asynWrapper(async (req, res, next) => {
   const { id } = req.user;
 
-  const approvals = await CostApproval.find({ creator: id }).populate("creator");
+  const approvals = await CostApproval.find({ creator: id })
+    .populate("creator")
+    .sort({ dateOfCreation: -1 });
 
   res.json(approvals);
 });

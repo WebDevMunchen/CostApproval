@@ -16,7 +16,7 @@ export default function AuthProvider({ children }) {
       .get("/user/getProfile")
       .then((response) => {
         setUser(response.data);
-        console.log(response.data)
+        // console.log(response.data)
       })
       .catch((error) => {
         setUser(null);
@@ -67,7 +67,7 @@ export default function AuthProvider({ children }) {
 
   return (
     <>
-      <AuthContext.Provider value={{ login, logout, user, isLoading }}>
+      <AuthContext.Provider value={{ login, logout, user, isLoading, userApprovals }}>
         {children}
       </AuthContext.Provider>
     </>
