@@ -40,7 +40,7 @@ const login = asyncWrapper(async (req, res, next) => {
     throw new ErrorResponse("Incorrect password!", 401);
   }
 
-  const payload = { id: user._id, abbreviation: user.abbreviation };
+  const payload = { id: user._id, abbreviation: user.abbreviation, firstName: user.firstName };
 
   const token = jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: "480m",
@@ -48,7 +48,7 @@ const login = asyncWrapper(async (req, res, next) => {
 
   res
     .cookie("access_token", token, { httpOnly: true, maxAge: 28800000 })
-    .json(payload);
+    .json(user);
 });
 
 const logout = asyncWrapper(async (req, res, next) => {
