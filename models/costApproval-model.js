@@ -8,16 +8,16 @@ const costApprovalSchema = new Schema({
     required: true,
   },
   title: { type: String, required: true },
-  additionalMessage: { type: String },
+  additionalMessage: { type: String, required:true },
   expenseAmount: { type: Number, required: true },
-  expenseAmountCent: { type: Number, required: true },
+  expenseAmountCent: { type: Number, required: true, default: 0 },
   liquidity: { type: Boolean, default: false },
   liquidityApproved: { type: Boolean, default: false },
-  approver: { type: String, enum: ["Ben", "Tobias", "Sandra", "Marion"] },
+  approver: { type: String, enum: ["Ben", "Tobias", "Sandra", "Marion"], required: true },
   fileURL: { type: String },
   dateOfCreation: { type: Date, default: Date.now() },
   deadline: {type: Date, required: true},
-  priority: {type: String, enum: ["Dringend", "Kann warten", "Mittel"]},
+  priority: {type: String, enum: ["Dringend", "Kann warten", "Mittel"], required: true},
   lastUpdate: { type: Date },
   status: {
     type: String,
@@ -28,6 +28,7 @@ const costApprovalSchema = new Schema({
       "In Prüfung",
       "Ja zum späteren Zeitpunkt",
     ],
+    default: "Neu"
   },
   reason: { type: String },
 });

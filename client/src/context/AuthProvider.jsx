@@ -8,6 +8,7 @@ export default function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
+  const [userApprovals, setUserApprovals] = useState(null)
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,6 +20,19 @@ export default function AuthProvider({ children }) {
       })
       .catch((error) => {
         setUser(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+      axiosClient
+      .get("/costApproval/getUserApprovals")
+      .then((response) => {
+        setUserApprovals(response.data);
+        console.log(response.data)
+      })
+      .catch((error) => {
+        setUserApprovals(null);
       })
       .finally(() => {
         setIsLoading(false);
