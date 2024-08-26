@@ -11,35 +11,35 @@ export default function InquiryCard({ approval }) {
       <div className="shadow rounded-lg collapse collapse-arrow bg-white">
         <input type="radio" name="my-accordion-2" />
         <div className="collapse-title text-xl font-medium">
-          <table class="min-w-full divide-y divide-gray-200 overflow-x-auto">
-            <tbody class="bg-white divide-y divide-gray-200">
+          <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
+            <tbody className="bg-white divide-y divide-gray-200">
               <tr>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="ml-4">
-                      <div class="text-sm underline text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm underline text-gray-500">
                         Artbeschreibung:
                       </div>
 
-                      <div class="text-md font-medium text-gray-900">
+                      <div className="text-md font-medium text-gray-900">
                         {approval.title}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm underline text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm underline text-gray-500">
                     Art der Kosten:
                   </div>
 
-                  <div class="text-md text-gray-900">
+                  <div className="text-md text-gray-900">
                     {approval.typeOfExpense}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="ml-4">
-                      <div class="text-sm underline text-gray-500">Status:</div>
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm underline text-gray-500">Status:</div>
                       <span
                         className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
                           approval.status === "Neu"
@@ -61,29 +61,34 @@ export default function InquiryCard({ approval }) {
                   </div>
                 </td>
 
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  <div class="flex items-center">
-                    <div class="ml-4">
-                      <div class="text-md underline text-gray-500">
-                        Wird genehmigt von:
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-md underline text-gray-500">
+                        Welche Kosten entstehen:
                       </div>
-                      <div class="text-lg font-medium text-gray-900">
-                        {approval.approver}
+                      <div className="text-lg font-medium text-gray-900">
+                        {approval.expenseAmount +
+                          "," +
+                          (approval.expenseAmountCent === 0
+                            ? "00"
+                            : approval.expenseAmountCent) +
+                          " €"}
                       </div>
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-md text-gray-500">
-                  <div class="flex items-center">
-                    <div class="ml-4">
-                      <div class="text-sm underline text-gray-500">
+                <td className="px-6 py-4 whitespace-nowrap text-md text-gray-500">
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm underline text-gray-500">
                         Erstellt am:
                       </div>
                       {formatDate(approval.dateOfCreation)}
                     </div>
                   </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap  text-sm font-medium">
+                <td className="px-6 py-4 whitespace-nowrap  text-sm font-medium">
                   <div className="flex gap-4">
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -108,7 +113,41 @@ export default function InquiryCard({ approval }) {
           </table>
         </div>
         <div className="collapse-content">
-          <p>Aditional Content</p>
+        <hr />
+
+        <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
+        <tbody className="bg-white divide-y divide-gray-200">
+        <tr>
+                <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center">
+            <div className="ml-4">
+              <div className="text-sm underline font-medium text-gray-500">
+                Wird genehmigt von:
+              </div>
+              <div className="text-lg font-medium text-gray-900">
+                {approval.approver}
+              </div>
+            </div>
+          </div>
+                </td>
+
+                <td className="px-6 py-4 whitespace-nowrap">
+                <div className="flex items-center">
+            <div className="ml-4">
+              <div className="text-sm underline font-medium text-gray-500">
+                Liquidität:
+              </div>
+              <div className="text-lg font-medium text-gray-900">
+                {approval.liquidity === false ? "Deine Anfrage braucht kein Liquidität" : approval.liquidityApproved === true ? "Genehmigt" : "Nicht genehmigt"}
+              </div>
+            </div>
+          </div>
+                </td>
+                </tr>
+
+          </tbody>
+          </table>
+
         </div>
       </div>
     </div>
