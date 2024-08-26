@@ -16,9 +16,11 @@ const createNewApproval = asynWrapper(async (req, res, next) => {
 
   const creator = req.user.id;
   let liquidity = false;
+  let liquidityStatus;
 
   if (expenseAmount >= 1500) {
     liquidity = true;
+    liquidityStatus = "In Prüfung"
   }
 
   const newExpense = await CostApproval.create({
@@ -31,6 +33,7 @@ const createNewApproval = asynWrapper(async (req, res, next) => {
     approver,
     deadline,
     liquidity,
+    liquidityStatus,
     priority,
   });
 

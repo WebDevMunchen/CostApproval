@@ -12,7 +12,7 @@ const costApprovalSchema = new Schema({
   expenseAmount: { type: Number, required: true },
   expenseAmountCent: { type: Number, required: true, default: 0 },
   liquidity: { type: Boolean, default: false },
-  liquidityApproved: { type: Boolean, default: false },
+  liquidityStatus: { type: String, enum: ["In Prüfung", "Genhemigt", "Abgelehnt"] },
   approver: { type: String, enum: ["Ben", "Tobias", "Sandra", "Marion"], required: true },
   fileURL: { type: String },
   dateOfCreation: { type: Date, default: Date.now() },

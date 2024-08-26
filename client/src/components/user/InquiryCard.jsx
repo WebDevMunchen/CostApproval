@@ -39,9 +39,11 @@ export default function InquiryCard({ approval }) {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="ml-4">
-                      <div className="text-sm underline text-gray-500">Status:</div>
+                      <div className="text-sm underline text-gray-500">
+                        Status:
+                      </div>
                       <span
-                        className={`px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
+                        className={`mt-2 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
                           approval.status === "Neu"
                             ? "bg-blue-100 text-blue-800"
                             : approval.status === "Abgelehnt"
@@ -113,41 +115,66 @@ export default function InquiryCard({ approval }) {
           </table>
         </div>
         <div className="collapse-content">
-        <hr />
+          <hr />
 
-        <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
-        <tbody className="bg-white divide-y divide-gray-200">
-        <tr>
+          <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
+            <tbody className="bg-white divide-y divide-gray-200">
+              <tr>
                 <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-            <div className="ml-4">
-              <div className="text-sm underline font-medium text-gray-500">
-                Wird genehmigt von:
-              </div>
-              <div className="text-lg font-medium text-gray-900">
-                {approval.approver}
-              </div>
-            </div>
-          </div>
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm underline font-medium text-gray-500">
+                        Wird genehmigt von:
+                      </div>
+                      <div className="text-lg font-medium text-gray-900">
+                        {approval.approver}
+                      </div>
+                    </div>
+                  </div>
                 </td>
 
                 <td className="px-6 py-4 whitespace-nowrap">
-                <div className="flex items-center">
-            <div className="ml-4">
-              <div className="text-sm underline font-medium text-gray-500">
-                Liquidität:
-              </div>
-              <div className="text-lg font-medium text-gray-900">
-                {approval.liquidity === false ? "Deine Anfrage braucht kein Liquidität" : approval.liquidityApproved === true ? "Genehmigt" : "Nicht genehmigt"}
-              </div>
-            </div>
-          </div>
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm underline font-medium text-gray-500">
+                        Liquidität:
+                      </div>
+                      <div className="text-lg font-medium text-gray-900">
+                        <span
+                          className={`mt-2 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
+                            approval.liquidity === false
+                              ? "bg-lime-100 text-lime-800"
+                              : approval.liquidityStatus === "Genehmigt"
+                              ? "bg-green-100 text-green-800"
+                              : approval.liquidityStatus === "Abgelehnt"
+                              ? "bg-red-100 text-red-800"
+                              : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          {approval.liquidity === false
+                            ? "Nicht benötigt"
+                            : approval.liquidityStatus}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </td>
-                </tr>
 
-          </tbody>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center">
+                    <div className="ml-4">
+                      <div className="text-sm underline font-medium text-gray-500">
+                        Priorität:
+                      </div>
+                      <div className="text-lg font-medium text-gray-900">
+                        {approval.priority}
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
           </table>
-
         </div>
       </div>
     </div>
