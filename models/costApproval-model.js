@@ -1,5 +1,10 @@
 const { Schema, model } = require("mongoose");
 
+const updateSchema = new Schema({
+  message: { type: String, required: true },
+  date: { type: Date },
+});
+
 const costApprovalSchema = new Schema({
   creator: { type: Schema.Types.ObjectId, ref: "User" },
   typeOfExpense: {
@@ -18,7 +23,7 @@ const costApprovalSchema = new Schema({
   dateOfCreation: { type: Date, default: Date.now() },
   deadline: {type: Date, required: true},
   priority: {type: String, enum: ["Dringend", "Kann warten", "Mittel"], required: true},
-  lastUpdate: { type: Date },
+  lastUpdate: [updateSchema],
   status: {
     type: String,
     enum: [

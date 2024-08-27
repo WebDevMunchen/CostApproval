@@ -2,9 +2,12 @@ import { useNavigate } from "react-router-dom";
 import axiosClient from "../../utils/axiosClient";
 import Sidebar from "../shared/Sidebar";
 import { useForm } from "react-hook-form";
-import { useState } from "react";
+import { useContext, useState } from "react";
+import { AuthContext } from "../../context/AuthProvider";
 
-export default function InquryForm() {
+export default function InquiryForm() {
+  const { setUserApprovals } = useContext(AuthContext);
+
   const navigate = useNavigate();
 
   const [defaultValueCents, setDefaultValueCents] = useState(0);
@@ -19,6 +22,10 @@ export default function InquryForm() {
     axiosClient
       .post("/costApproval/createNewApproval", data)
       .then((response) => {
+        return axiosClient.get("/costApproval/getUserApprovals");
+      })
+      .then((response) => {
+        setUserApprovals(response.data);
         navigate("/meineAnfragen");
       })
       .catch((error) => {

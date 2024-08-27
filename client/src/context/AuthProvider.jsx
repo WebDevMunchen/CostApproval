@@ -8,7 +8,7 @@ export default function AuthProvider({ children }) {
   const navigate = useNavigate();
 
   const [user, setUser] = useState(null);
-  const [userApprovals, setUserApprovals] = useState(null)
+  const [userApprovals, setUserApprovals] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function AuthProvider({ children }) {
       .get("/user/getProfile")
       .then((response) => {
         setUser(response.data);
-        // console.log(response.data)
+        console.log(response.data)
       })
       .catch((error) => {
         setUser(null);
@@ -25,11 +25,11 @@ export default function AuthProvider({ children }) {
         setIsLoading(false);
       });
 
-      axiosClient
+    axiosClient
       .get("/costApproval/getUserApprovals")
       .then((response) => {
         setUserApprovals(response.data);
-        console.log(response.data)
+        console.log(response.data);
       })
       .catch((error) => {
         setUserApprovals(null);
@@ -39,12 +39,16 @@ export default function AuthProvider({ children }) {
       });
   }, []);
 
-  const login = async (data, redirectUrl) => {
+  const login = async (data) => {
     axiosClient
       .post("/user/login", data)
       .then((response) => {
         setUser(response.data);
-        console.log(response.data);
+
+        return axiosClient.get("/costApproval/getUserApprovals");
+      })
+      .then((response) => {
+        setUserApprovals(response.data);
         navigate("/meineAnfragen");
       })
       .catch((error) => {
@@ -65,9 +69,12 @@ export default function AuthProvider({ children }) {
       .catch((error) => {});
   };
 
+
   return (
     <>
-      <AuthContext.Provider value={{ login, logout, user, isLoading, userApprovals }}>
+      <AuthContext.Provider
+        value={{ login, logout, user, isLoading, userApprovals, setUserApprovals }}
+      >
         {children}
       </AuthContext.Provider>
     </>

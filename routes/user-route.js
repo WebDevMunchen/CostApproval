@@ -5,7 +5,7 @@ const {
   getProfile,
   logout,
 } = require("../controllers/user-controller");
-const authenticate = require("../middlewares/authenticate");
+const { authenticate } = require("../middlewares/authenticate.js");
 
 const userRouter = express.Router();
 

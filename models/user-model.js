@@ -8,7 +8,7 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, select: false },
   department: { type: String, required: true },
-  role: { type: String, enum: ["user", "admin"], default: "user" },
+  role: { type: String, enum: ["user", "admin", "accounting"], default: "user" },
   // request: { type: Schema.Types.ObjectId, ref: "CostApprovalRequest" },
 });
 
