@@ -1,8 +1,8 @@
 const CostApproval = require("../models/costApproval-model.js");
 const ErrorResponse = require("../utils/ErrorResponse.js");
-const asynWrapper = require("../utils/asyncWrapper.js");
+const asyncWrapper = require("../utils/asyncWrapper.js");
 
-const createNewApproval = asynWrapper(async (req, res, next) => {
+const createNewApproval = asyncWrapper(async (req, res, next) => {
   const {
     typeOfExpense,
     title,
@@ -40,7 +40,7 @@ const createNewApproval = asynWrapper(async (req, res, next) => {
   res.status(201).json(newExpense);
 });
 
-const editApproval = asynWrapper(async (req, res, next) => {
+const editApproval = asyncWrapper(async (req, res, next) => {
   const {
     typeOfExpense,
     title,
@@ -81,7 +81,7 @@ const editApproval = asynWrapper(async (req, res, next) => {
   res.status(201).json(newExpense);
 });
 
-const deleteApproval = asynWrapper(async (req, res, next) => {
+const deleteApproval = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
 
   const approval = await CostApproval.findByIdAndDelete(id);
@@ -89,11 +89,11 @@ const deleteApproval = asynWrapper(async (req, res, next) => {
   if (!approval) {
     throw new ErrorResponse("Approval not found!", 404);
   } else {
-    res.json({message: "Deleted!"});
+    res.json({ message: "Deleted!" });
   }
 });
 
-const getUserApprovals = asynWrapper(async (req, res, next) => {
+const getUserApprovals = asyncWrapper(async (req, res, next) => {
   const { id } = req.user;
 
   const approvals = await CostApproval.find({ creator: id })
@@ -103,7 +103,7 @@ const getUserApprovals = asynWrapper(async (req, res, next) => {
   res.json(approvals);
 });
 
-const getSingleApproval = asynWrapper(async (req, res, next) => {
+const getSingleApproval = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
 
   const approval = await CostApproval.findById(id);
@@ -115,10 +115,27 @@ const getSingleApproval = asynWrapper(async (req, res, next) => {
   }
 });
 
+const getAllApprovals = asyncWrapper(async (req, res, next) => {
+  const currentYear = req.query.year || new Date().getFullYear();
+  const currentMonth = req.query.month || new Date().toLocaleString('de-DE', { month: 'long' });
+
+  const approvals = await CostApproval.find({
+    year: currentYear,
+    month: currentMonth,
+  });
+
+  res.json(approvals);
+});
+
+module.exports = {
+  getAllApprovals,
+}
+
 module.exports = {
   createNewApproval,
   getUserApprovals,
   getSingleApproval,
   editApproval,
-  deleteApproval
+  deleteApproval,
+  getAllApprovals
 };

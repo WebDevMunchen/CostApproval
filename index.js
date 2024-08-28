@@ -6,6 +6,7 @@ const cookieParser = require("cookie-parser");
 const errorHandler = require("./middlewares/errorHandler.js");
 const userRouter = require("./routes/user-route.js");
 const costApprovalRoute = require("./routes/costApproval-route.js");
+const budgetRoute = require("./routes/budget-route.js");
 const port = process.env.PORT || 3000;
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(express.json());
 
 app.use("/user", userRouter);
 app.use("/costApproval", costApprovalRoute);
+app.use("/budget", budgetRoute);
 
 app.use(errorHandler);
 

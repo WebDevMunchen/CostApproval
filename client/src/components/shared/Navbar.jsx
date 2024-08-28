@@ -55,10 +55,13 @@ export default function Navbar() {
             </form>
           </div>
           <div className="flex items-center">
-            {!user ? <p className="hidden">Loading</p> : <p className="text-2xl font-bold font-anek text-gray-800">
-  <span className="text-blue-600">Hallo,</span> {user.firstName}!
-</p>
-}
+            {!user ? (
+              <p className="hidden">Loading</p>
+            ) : (
+              <p className="text-2xl font-bold font-anek text-gray-800">
+                <span className="text-blue-600">Hallo,</span> {user.firstName}!
+              </p>
+            )}
             {/* <p>Notification Bell</p> */}
           </div>
         </div>

@@ -5,7 +5,15 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const register = asyncWrapper(async (req, res, next) => {
-  const { abbreviation, password, department } = req.body;
+  const {
+    abbreviation,
+    firstName,
+    lastName,
+    email,
+    password,
+    department,
+    role,
+  } = req.body;
 
   const found = await User.findOne({ abbreviation });
 
@@ -15,13 +23,21 @@ const register = asyncWrapper(async (req, res, next) => {
 
   const newUser = await User.create({
     abbreviation,
+    firstName,
+    lastName,
+    email,
     password,
-    department
+    department,
+    role,
   });
 
   res.status(201).json({
     abbreviation: newUser.abbreviation,
+    firstName: newUser.firstName,
+    lastName: newUser.lastName,
+    email: newUser.email,
     department: newUser.department,
+    role: newUser.role,
   });
 });
 
@@ -40,7 +56,12 @@ const login = asyncWrapper(async (req, res, next) => {
     throw new ErrorResponse("Incorrect password!", 401);
   }
 
-  const payload = { id: user._id, abbreviation: user.abbreviation, firstName: user.firstName, role: user.role };
+  const payload = {
+    id: user._id,
+    abbreviation: user.abbreviation,
+    firstName: user.firstName,
+    role: user.role,
+  };
 
   const token = jwt.sign(payload, process.env.JWT_SECRET, {
     expiresIn: "480m",

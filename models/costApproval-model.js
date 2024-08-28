@@ -1,5 +1,16 @@
 const { Schema, model } = require("mongoose");
 
+// Helper functions to get the current year and month in German
+const getCurrentYear = () => new Date().getFullYear();
+
+const getCurrentMonth = () => {
+  const monthNames = [
+    "Januar", "Februar", "März", "April", "Mai", "Juni",
+    "Juli", "August", "September", "Oktober", "November", "Dezember"
+  ];
+  return monthNames[new Date().getMonth()];
+};
+
 const updateSchema = new Schema({
   message: { type: String, required: true },
   date: { type: Date },
@@ -13,16 +24,16 @@ const costApprovalSchema = new Schema({
     required: true,
   },
   title: { type: String, required: true },
-  additionalMessage: { type: String, required:true },
+  additionalMessage: { type: String, required: true },
   expenseAmount: { type: Number, required: true },
   expenseAmountCent: { type: Number, required: true, default: 0 },
   liquidity: { type: Boolean, default: false },
-  liquidityStatus: { type: String, enum: ["In Prüfung", "Genhemigt", "Abgelehnt"] },
+  liquidityStatus: { type: String, enum: ["In Prüfung", "Genehmigt", "Abgelehnt"] },
   approver: { type: String, enum: ["Ben", "Tobias", "Sandra", "Marion"], required: true },
   fileURL: { type: String },
-  dateOfCreation: { type: Date, default: Date.now() },
-  deadline: {type: Date, required: true},
-  priority: {type: String, enum: ["Dringend", "Kann warten", "Mittel"], required: true},
+  dateOfCreation: { type: Date, default: Date.now },
+  deadline: { type: Date, required: true },
+  priority: { type: String, enum: ["Dringend", "Kann warten", "Mittel"], required: true },
   lastUpdate: [updateSchema],
   status: {
     type: String,
@@ -33,9 +44,13 @@ const costApprovalSchema = new Schema({
       "In Prüfung",
       "Ja zum späteren Zeitpunkt",
     ],
-    default: "Neu"
+    default: "Neu",
   },
   reason: { type: String },
+
+  // New fields for year and month (in German)
+  year: { type: Number, default: getCurrentYear },
+  month: { type: String, default: getCurrentMonth },
 });
 
 const CostApproval = model("CostApproval", costApprovalSchema);

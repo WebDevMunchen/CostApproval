@@ -5,6 +5,7 @@ const {
   getSingleApproval,
   editApproval,
   deleteApproval,
+  getAllApprovals,
 } = require("../controllers/costApproval-controller");
 const { authenticate } = require("../middlewares/authenticate");
 
@@ -17,6 +18,8 @@ costApprovalRoute
 costApprovalRoute
   .route("/getUserApprovals")
   .get(authenticate, getUserApprovals);
+
+costApprovalRoute.route("/getAllApprovals").get(authenticate, getAllApprovals);
 
 costApprovalRoute
   .route("/:id")
