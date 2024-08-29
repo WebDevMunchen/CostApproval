@@ -9,16 +9,21 @@ export default function AuthProvider({ children }) {
 
   const [user, setUser] = useState(null);
   const [userApprovals, setUserApprovals] = useState(null);
+  const [yearlyApprovals, setYearlyApprovals] = useState(null);
   const [allApprovals, setAllApprovals] = useState(null);
   const [allBudgets, setAllBudgets] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedMonth, setSelectedMonth] = useState(
+    new Date().toLocaleString('de-DE', { month: 'long' })
+  );
+  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
     axiosClient
       .get("/user/getProfile")
       .then((response) => {
         setUser(response.data);
-        console.log(response.data);
+        // console.log(response.data);
       })
       .catch((error) => {
         setUser(null);
@@ -40,14 +45,27 @@ export default function AuthProvider({ children }) {
         setIsLoading(false);
       });
 
-    axiosClient
-      .get("/costApproval/getAllApprovals")
+      axiosClient
+      .get(`/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}`)
       .then((response) => {
         setAllApprovals(response.data);
-        console.log(response.data);
+        // console.log(response.data);
       })
       .catch((error) => {
         setAllApprovals(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+      axiosClient
+      .get(`/costApproval/getAllApprovals?year=${selectedYear}`)
+      .then((response) => {
+        setYearlyApprovals(response.data);
+        console.log(response.data);
+      })
+      .catch((error) => {
+        setYearlyApprovals(null);
       })
       .finally(() => {
         setIsLoading(false);
@@ -57,7 +75,7 @@ export default function AuthProvider({ children }) {
       .get("/budget/getAllBudgets")
       .then((response) => {
         setAllBudgets(response.data);
-        console.log(response.data);
+        // console.log(response.data);
       })
       .catch((error) => {
         setAllBudgets(null);
@@ -65,7 +83,7 @@ export default function AuthProvider({ children }) {
       .finally(() => {
         setIsLoading(false);
       });
-  }, []);
+  }, [selectedMonth, selectedYear]);
 
   const login = async (data) => {
     axiosClient
@@ -82,14 +100,11 @@ export default function AuthProvider({ children }) {
       })
       .then((response) => {
         setAllApprovals(response.data);
-        console.log(response.data);
 
         return axiosClient("/budget/getAllBudgets");
       })
       .then((response) => {
         setAllBudgets(response.data);
-        console.log(response.data);
-        navigate("/meineAnfragen");
       })
       .catch((error) => {
         setUser(null);
@@ -120,7 +135,12 @@ export default function AuthProvider({ children }) {
           userApprovals,
           setUserApprovals,
           allBudgets,
-          allApprovals
+          allApprovals,
+          selectedMonth,
+          selectedYear,
+          setSelectedMonth,
+          setSelectedYear,
+          yearlyApprovals
         }}
       >
         {children}

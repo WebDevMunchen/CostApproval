@@ -9,7 +9,6 @@ const userSchema = new Schema({
   password: { type: String, required: true, select: false },
   department: { type: String, required: true },
   role: { type: String, enum: ["user", "admin", "accounting"], default: "user" },
-  // request: { type: Schema.Types.ObjectId, ref: "CostApprovalRequest" },
 });
 
 userSchema.pre("save", async function (next) {

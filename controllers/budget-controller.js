@@ -5,12 +5,6 @@ const asyncWrapper = require("../utils/asyncWrapper.js");
 const createBudget = asyncWrapper(async (req, res, next) => {
   const { year, month, amount } = req.body;
 
-  const newBudget = await Budget.create({
-    year,
-    month,
-    amount,
-  });
-
   const match = await Budget.findOne({ year, month });
 
   if (match) {
@@ -19,6 +13,14 @@ const createBudget = asyncWrapper(async (req, res, next) => {
       409
     );
   }
+
+  const newBudget = await Budget.create({
+    year,
+    month,
+    amount,
+  });
+
+
 
   res.status(201).json(newBudget);
 });

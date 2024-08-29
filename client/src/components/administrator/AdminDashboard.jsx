@@ -1,52 +1,135 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Sidebar from "../shared/Sidebar";
 import { AuthContext } from "../../context/AuthProvider";
+import { NavLink } from "react-router-dom";
 
 export default function AdminDashboard() {
-  const { allApprovals, allBudgets } = useContext(AuthContext);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toLocaleString('de-DE', { month: 'long' }));
-  const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const {
+    allApprovals,
+    allBudgets,
+    selectedMonth,
+    selectedYear,
+    setSelectedMonth,
+    setSelectedYear,
+    yearlyApprovals,
+  } = useContext(AuthContext);
 
-  // Initialize an object to store totals by month and year
   const monthlyTotals = {};
 
-  // Calculate totals for each month
-  allApprovals?.forEach((element) => {
-    const { month, year, expenseAmount = 0, expenseAmountCent = 0 } = element;
+  const approvalsForSelectedMonthYear = allApprovals?.filter(
+    (element) =>
+      element.month === selectedMonth && element.year === selectedYear
+  );
 
-    const key = `${month}-${year}`; // e.g., "Januar-2024"
+  const totalApprovalsCount = approvalsForSelectedMonthYear?.length || 0;
 
-    if (!monthlyTotals[key]) {
-      monthlyTotals[key] = { totalAmount: 0, totalAmountCents: 0 };
+  const approvedApprovals =
+    approvalsForSelectedMonthYear?.filter(
+      (element) => element.status === "Genehmigt"
+    ) || [];
+
+  const openApprovals =
+    approvalsForSelectedMonthYear?.filter(
+      (element) => element.status !== "Genehmigt"
+    ) || [];
+
+  approvedApprovals.forEach((element) => {
+    const { expenseAmount = 0, expenseAmountCent = 0 } = element;
+
+    if (!monthlyTotals[selectedMonth]) {
+      monthlyTotals[selectedMonth] = { totalAmount: 0, totalAmountCents: 0 };
     }
 
-    monthlyTotals[key].totalAmount += expenseAmount;
-    monthlyTotals[key].totalAmountCents += expenseAmountCent;
+    monthlyTotals[selectedMonth].totalAmount += expenseAmount;
+    monthlyTotals[selectedMonth].totalAmountCents += expenseAmountCent;
   });
 
-  // Adjust totals to handle cents overflow
-  Object.keys(monthlyTotals).forEach((key) => {
-    const { totalAmount, totalAmountCents } = monthlyTotals[key];
-    monthlyTotals[key].totalAmount += Math.floor(totalAmountCents / 100);
-    monthlyTotals[key].totalAmountCents = totalAmountCents % 100;
-  });
+  if (monthlyTotals[selectedMonth]) {
+    const { totalAmount, totalAmountCents } = monthlyTotals[selectedMonth];
+    monthlyTotals[selectedMonth].totalAmount += Math.floor(
+      totalAmountCents / 100
+    );
+    monthlyTotals[selectedMonth].totalAmountCents = totalAmountCents % 100;
+  }
 
-  // Get the total for the selected month
-  const selectedMonthKey = `${selectedMonth}-${selectedYear}`;
-  const selectedTotals = monthlyTotals[selectedMonthKey] || { totalAmount: 0, totalAmountCents: 0 };
+  const selectedTotals = monthlyTotals[selectedMonth] || {
+    totalAmount: 0,
+    totalAmountCents: 0,
+  };
 
   const { totalAmount, totalAmountCents } = selectedTotals;
 
-  const selectedBudget = allBudgets?.find(budget => budget.year === selectedYear && budget.month === selectedMonth);
-  const budgetAmount = selectedBudget ? selectedBudget.amount : "No budget set for this month";
+  const selectedBudget = allBudgets?.find(
+    (budget) => budget.year === selectedYear && budget.month === selectedMonth
+  );
+  const budgetAmount = selectedBudget ? selectedBudget.amount : 0;
 
-  // Define the months and years you want to include in the dropdown
+  const totalApprovedAmount = totalAmount + totalAmountCents / 100;
+
+  const differenceInEuros = budgetAmount - totalApprovedAmount;
+
+  const totalBudgetForYear =
+    allBudgets
+      ?.filter((budget) => budget.year === selectedYear)
+      .reduce((acc, curr) => acc + curr.amount, 0) || 0;
+
+  const yearlyTotals = {};
+  const approvalsForYear = yearlyApprovals?.filter(
+    (element) => element.year === selectedYear
+  );
+
+  approvalsForYear?.forEach((element) => {
+    if (element.status === "Genehmigt") {
+      const { expenseAmount = 0, expenseAmountCent = 0 } = element;
+
+      if (!yearlyTotals[element.month]) {
+        yearlyTotals[element.month] = { totalAmount: 0, totalAmountCents: 0 };
+      }
+
+      yearlyTotals[element.month].totalAmount += expenseAmount;
+      yearlyTotals[element.month].totalAmountCents += expenseAmountCent;
+    }
+  });
+
+  Object.keys(yearlyTotals)?.forEach((key) => {
+    const { totalAmount, totalAmountCents } = yearlyTotals[key];
+    yearlyTotals[key].totalAmount += Math.floor(totalAmountCents / 100);
+    yearlyTotals[key].totalAmountCents = totalAmountCents % 100;
+  });
+
+  const totalApprovedForYear = Object.values(yearlyTotals).reduce(
+    (acc, { totalAmount, totalAmountCents }) => {
+      acc.totalAmount += totalAmount;
+      acc.totalAmountCents += totalAmountCents;
+      return acc;
+    },
+    { totalAmount: 0, totalAmountCents: 0 }
+  );
+
+  const { totalAmount: totalYearlyAmount, totalAmountCents: totalYearlyCents } =
+    totalApprovedForYear;
+
+  const totalApprovedAmountForYear = totalYearlyAmount + totalYearlyCents / 100;
+
+  const differenceInEurosForYear =
+    totalBudgetForYear - totalApprovedAmountForYear;
+
   const months = [
-    'Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
   ];
 
-  const years = [2023, 2024, 2025]; // Add more years as needed
+  const years = [2023, 2024, 2025];
 
   return (
     <div>
@@ -66,12 +149,25 @@ export default function AdminDashboard() {
                 <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
                   <div className="flex items-center justify-between">
                     <div className="flex-shrink-0">
-                      <h3 className="text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 px-2 text-base font-semibold text-gray-500">
                         Budget {selectedMonth}:
                       </h3>
-                      <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
-                      {budgetAmount + "€"}
-                      </span>
+
+                      {budgetAmount === 0 ? (
+                        <NavLink
+                          to={"/budgetVerwalten"}
+                          className="text-blue-600 hover:text-blue-800 font-semibold text-2xl rounded-lg px-2 py-2 transition duration-300 ease-in-out hover:bg-blue-100"
+                        >
+                          Budget erstellen
+                        </NavLink>
+                      ) : (
+                        <span className="px-2 text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                          {`${budgetAmount.toLocaleString("de-DE", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}€`}
+                        </span>
+                      )}
                       <div className="invisible flex items-center text-green-500 text-base font-bold mt-2">
                         14.6%
                         <svg
@@ -90,30 +186,56 @@ export default function AdminDashboard() {
                     </div>
 
                     <div className="flex-shrink-0 text-left">
-                      <h3 className="text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-base font-semibold text-gray-500">
                         Bisher genehmigt:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
-                        {`${totalAmount < 10 ? "0" : ""}${totalAmount},${
+                        {`${totalAmount.toLocaleString("de-DE")},${
                           totalAmountCents === 0
                             ? "00"
                             : totalAmountCents.toString().padStart(2, "0")
                         }€`}
                       </span>
-                      <div className="flex items-center text-green-500 text-base font-bold mt-2">
-                        14.6%
-                        <svg
-                          className="w-5 h-5 ml-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
+                      <div
+                        className={`${
+                          differenceInEuros >= 0
+                            ? "flex items-center text-green-500 text-base font-bold mt-2"
+                            : "flex items-center text-red-500 text-base font-bold mt-2"
+                        }`}
+                      >
+                        {`${differenceInEuros.toLocaleString("de-DE")}€`}
+
+                        {differenceInEuros >= 0 ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+                            />
+                          </svg>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -122,11 +244,11 @@ export default function AdminDashboard() {
                 <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
                   <div className="flex items-center justify-between">
                     <div className="flex-shrink-0">
-                      <h3 className="text-base font-semibold text-gray-500">
-                        Anfragen in {selectedMonth}:
+                      <h3 className="mb-2 text-base font-semibold text-gray-500">
+                        Anfragen in {selectedMonth} {selectedYear}:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
-                        15
+                        {totalApprovalsCount}
                       </span>
                     </div>
 
@@ -135,18 +257,20 @@ export default function AdminDashboard() {
                         <span className="text-base font-semibold text-gray-500 mr-2">
                           Noch öffen:
                         </span>
-                        <span>13</span>
+                        <span>{openApprovals?.length}</span>
                         <svg
-                          className="w-5 h-5 ml-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="size-6 ml-2"
                         >
                           <path
-                            fillRule="evenodd"
-                            d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          ></path>
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 0 1 0 3.75H5.625a1.875 1.875 0 0 1 0-3.75Z"
+                          />
                         </svg>
                       </div>
 
@@ -154,39 +278,38 @@ export default function AdminDashboard() {
                         <span className="text-base font-semibold text-gray-500 mr-2">
                           Abgeschlossen:
                         </span>
-                        <span>2</span>
+                        <span>{approvedApprovals?.length}</span>
                         <svg
-                          className="w-5 h-5 ml-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
                           xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="size-6 ml-2"
                         >
                           <path
-                            fillRule="evenodd"
-                            d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          ></path>
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 11.625h4.5m-4.5 2.25h4.5m2.121 1.527c-1.171 1.464-3.07 1.464-4.242 0-1.172-1.465-1.172-3.84 0-5.304 1.171-1.464 3.07-1.464 4.242 0M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                          />
                         </svg>
                       </div>
                     </div>
                   </div>
                 </div>
-
                 <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
                   <div className="flex items-center justify-between">
                     <div className="flex-shrink-0">
-                      <h3 className="text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-base font-semibold text-gray-500">
                         Budget {selectedYear}:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
-                        {/* {`${totalAmount < 10 ? "0" : ""}${totalAmount},${
-                          totalAmountCents === 0
-                            ? "00"
-                            : totalAmountCents.toString().padStart(2, "0")
-                        }€`} */}
+                        {`${totalBudgetForYear.toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
                       </span>
                       <div className="invisible flex items-center text-green-500 text-base font-bold mt-2">
-                        14.6%
                         <svg
                           className="w-5 h-5 ml-1"
                           fill="currentColor"
@@ -202,31 +325,56 @@ export default function AdminDashboard() {
                       </div>
                     </div>
 
-                    <div className="flex-shrink-0 text-right">
-                      <h3 className="text-base font-semibold text-gray-500">
+                    <div className="flex-shrink-0 text-left">
+                      <h3 className="mb-2 text-base font-semibold text-gray-500">
                         Bisher genehmigt:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
-                        {/* {`${totalAmount < 10 ? "0" : ""}${totalAmount},${
-                          totalAmountCents === 0
-                            ? "00"
-                            : totalAmountCents.toString().padStart(2, "0")
-                        }€`} */}
+                        {`${totalApprovedAmountForYear.toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
                       </span>
-                      <div className="flex items-center text-green-500 text-base font-bold mt-2">
-                        14.6%
-                        <svg
-                          className="w-5 h-5 ml-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
+                      <div
+                        className={`${
+                          differenceInEurosForYear >= 0
+                            ? "flex items-center text-green-500 text-base font-bold mt-2"
+                            : "flex items-center text-red-500 text-base font-bold mt-2"
+                        }`}
+                      >
+                        {`${differenceInEurosForYear.toLocaleString("de-DE")}€`}
+
+                        {differenceInEurosForYear >= 0 ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+                            />
+                          </svg>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -235,30 +383,33 @@ export default function AdminDashboard() {
               <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                 <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-2">
                   <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-          <select
-            value={selectedMonth}
-            onChange={(e) => setSelectedMonth(e.target.value)}
-            className="mr-2 border-gray-300 rounded-md"
-          >
-            {months.map((month) => (
-              <option key={month} value={month}>
-                {month}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(e.target.value)}
-            className="border-gray-300 rounded-md"
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </select>
-        </div>
+                    <div className="flex items-center">
+                      <select
+                        value={selectedMonth}
+                        onChange={(e) => setSelectedMonth(e.target.value)}
+                        className="mr-2 border-gray-300 rounded-md"
+                      >
+                        {months.map((month) => (
+                          <option key={month} value={month}>
+                            {month}
+                          </option>
+                        ))}
+                      </select>
+
+                      <select
+                        value={selectedYear}
+                        onChange={(e) =>
+                          setSelectedYear(Number(e.target.value))
+                        }
+                        className="border-gray-300 rounded-md"
+                      >
+                        {years.map((year) => (
+                          <option key={year} value={year}>
+                            {year}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="flex items-center justify-end flex-1 text-green-500 text-base font-bold">
                       12.5%
                       <svg
@@ -322,40 +473,75 @@ export default function AdminDashboard() {
                                   scope="col"
                                   className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                 >
-                                  Vergleich
+                                  Restbetrag
                                 </th>
                               </tr>
                             </thead>
                             <tbody className="bg-white">
-                             
-                            {months.map((month) => {
-          const key = `${month}-${new Date().getFullYear()}`;
-          const totals = monthlyTotals[key] || { totalAmount: 0, totalAmountCents: 0 };
+                              {months.map((month) => {
+                                // Find the budget and approved amount for the given month and selected year
+                                const budget = allBudgets?.find(
+                                  (b) =>
+                                    b.year === selectedYear && b.month === month
+                                );
+                                const budgetAmount = budget ? budget.amount : 0;
 
-          return (
-            <tr key={month}>
-              <td className="px-4 py-2 whitespace-nowrap text-sm font-semibold text-gray-500">
-                {month}
-              </td>
-              <td className="px-4 py-2 text-center whitespace-nowrap text-sm font-semibold text-gray-900">
-                {/* Add logic to calculate and display the percentage if needed */}
-                TBD
-              </td>
-              <td className="px-4 py-2 text-center whitespace-nowrap text-sm font-normal text-gray-500">
-                {`${totals.totalAmount < 10 ? '0' : ''}${totals.totalAmount},${
-                  totals.totalAmountCents === 0
-                    ? '00'
-                    : totals.totalAmountCents.toString().padStart(2, '0')
-                }€`}
-              </td>
-              <td className="px-4 py-2 text-center whitespace-nowrap text-sm font-semibold text-gray-900">
-                {/* Add logic to calculate and display the percentage if needed */}
-                15%
-              </td>
-            </tr>
-          );
-        })}
-      </tbody>
+                                const approved = yearlyApprovals?.filter(
+                                  (approval) =>
+                                    approval.year === selectedYear &&
+                                    approval.month === month &&
+                                    approval.status === "Genehmigt"
+                                );
+
+                                let totalApprovedAmount = 0;
+                                if (approved) {
+                                  approved.forEach((element) => {
+                                    const {
+                                      expenseAmount = 0,
+                                      expenseAmountCent = 0,
+                                    } = element;
+                                    totalApprovedAmount +=
+                                      expenseAmount + expenseAmountCent / 100;
+                                  });
+                                }
+
+                                // Calculate the difference between budget and approved amounts
+                                const differenceInEuros =
+                                  budgetAmount - totalApprovedAmount;
+
+                                // Format numbers with a dot as thousand separator and comma for decimal
+                                const formatNumber = (number) =>
+                                  new Intl.NumberFormat("de-DE", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }).format(number);
+
+                                return (
+                                  <tr key={month}>
+                                    <td className="px-4 py-2 whitespace-nowrap text-sm font-semibold text-gray-500">
+                                      {month}
+                                    </td>
+                                    <td className="px-4 py-2 text-center whitespace-nowrap text-sm font-semibold text-gray-900">
+                                      {formatNumber(budgetAmount) + "€"}
+                                    </td>
+                                    <td className="px-4 py-2 text-center whitespace-nowrap text-sm font-semibold text-gray-500">
+                                      {formatNumber(totalApprovedAmount) + "€"}
+                                    </td>
+                                    <td
+                                      className={`px-4 py-2 text-center whitespace-nowrap text-sm font-semibold ${
+                                        differenceInEuros < 0
+                                          ? "text-red-500"
+                                          : differenceInEuros === 0
+                                          ? "text-gray-900"
+                                          : "text-green-500"
+                                      }`}
+                                    >
+                                      {formatNumber(differenceInEuros) + "€"}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
                           </table>
                         </div>
                       </div>

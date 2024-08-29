@@ -76,19 +76,66 @@ export default function Sidebar() {
               </ul>
             ) : (
               <ul className="space-y-2 pb-2">
-                              <li>
-                <NavLink to={"/admin/dashboard"} className="text-base text-gray-900 font-semibold rounded-lg flex items-center p-2 hover:bg-gray-100 group">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 576 512"
-                    height="24"
-                    className="fill-gray-500 group-hover:fill-slate-950 transition-colors duration-200"
+                <li>
+                  <NavLink
+                    to={"/admin/dashboard"}
+                    className="text-base text-gray-900 font-semibold rounded-lg flex items-center p-2 hover:bg-gray-100 group"
                   >
-                    <path d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z" />
-                  </svg>
-                  <span className="ml-3">Dashboard</span>
-                </NavLink>
-              </li>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 576 512"
+                      height="24"
+                      className="fill-gray-500 group-hover:fill-slate-950 transition-colors duration-200"
+                    >
+                      <path d="M575.8 255.5c0 18-15 32.1-32 32.1l-32 0 .7 160.2c0 2.7-.2 5.4-.5 8.1l0 16.2c0 22.1-17.9 40-40 40l-16 0c-1.1 0-2.2 0-3.3-.1c-1.4 .1-2.8 .1-4.2 .1L416 512l-24 0c-22.1 0-40-17.9-40-40l0-24 0-64c0-17.7-14.3-32-32-32l-64 0c-17.7 0-32 14.3-32 32l0 64 0 24c0 22.1-17.9 40-40 40l-24 0-31.9 0c-1.5 0-3-.1-4.5-.2c-1.2 .1-2.4 .2-3.6 .2l-16 0c-22.1 0-40-17.9-40-40l0-112c0-.9 0-1.9 .1-2.8l0-69.7-32 0c-18 0-32-14-32-32.1c0-9 3-17 10-24L266.4 8c7-7 15-8 22-8s15 2 21 7L564.8 231.5c8 7 12 15 11 24z" />
+                    </svg>
+                    <span className="ml-3">Dashboard</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    onClick={() => logout()}
+                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 576 512"
+                      className="fill-gray-500 group-hover:fill-slate-950 transition-colors duration-200"
+                      height="24"
+                    >
+                      <path d="M400 96l0 .7c-5.3-.4-10.6-.7-16-.7L256 96c-16.5 0-32.5 2.1-47.8 6c-.1-2-.2-4-.2-6c0-53 43-96 96-96s96 43 96 96zm-16 32c3.5 0 7 .1 10.4 .3c4.2 .3 8.4 .7 12.6 1.3C424.6 109.1 450.8 96 480 96l11.5 0c10.4 0 18 9.8 15.5 19.9l-13.8 55.2c15.8 14.8 28.7 32.8 37.5 52.9l13.3 0c17.7 0 32 14.3 32 32l0 96c0 17.7-14.3 32-32 32l-32 0c-9.1 12.1-19.9 22.9-32 32l0 64c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-32-128 0 0 32c0 17.7-14.3 32-32 32l-32 0c-17.7 0-32-14.3-32-32l0-64c-34.9-26.2-58.7-66.3-63.2-112L68 304c-37.6 0-68-30.4-68-68s30.4-68 68-68l4 0c13.3 0 24 10.7 24 24s-10.7 24-24 24l-4 0c-11 0-20 9-20 20s9 20 20 20l31.2 0c12.1-59.8 57.7-107.5 116.3-122.8c12.9-3.4 26.5-5.2 40.5-5.2l128 0zm64 136a24 24 0 1 0 -48 0 24 24 0 1 0 48 0z" />
+                    </svg>
+                    <span className="ml-3 flex-1 whitespace-nowrap">
+                      Budget
+                    </span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    onClick={() => logout()}
+                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={1.5}
+                      stroke="currentColor"
+                                            className="group-hover:fill-slate-950 transition-colors duration-200"
+                      height="24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 11.625h4.5m-4.5 2.25h4.5m2.121 1.527c-1.171 1.464-3.07 1.464-4.242 0-1.172-1.465-1.172-3.84 0-5.304 1.171-1.464 3.07-1.464 4.242 0M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                      />
+                    </svg>
+
+                    <span className="ml-3 flex-1 whitespace-nowrap">
+                      Kostenanfragen
+                    </span>
+                  </NavLink>
+                </li>
 
                 <li>
                   <NavLink
@@ -108,7 +155,6 @@ export default function Sidebar() {
                     </span>
                   </NavLink>
                 </li>
-
               </ul>
             )}
           </div>

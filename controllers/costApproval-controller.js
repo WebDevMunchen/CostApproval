@@ -116,13 +116,20 @@ const getSingleApproval = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllApprovals = asyncWrapper(async (req, res, next) => {
-  const currentYear = req.query.year || new Date().getFullYear();
-  const currentMonth = req.query.month || new Date().toLocaleString('de-DE', { month: 'long' });
+  const { month, year } = req.query;
+  let query = {};
 
-  const approvals = await CostApproval.find({
-    year: currentYear,
-    month: currentMonth,
-  });
+  if (month) {
+    query.month = month;
+  }
+
+  if (year) {
+    query.year = year;
+  }
+
+  const approvals = await CostApproval.find(query).populate("creator");
+
+  console.log(approvals);
 
   res.json(approvals);
 });
