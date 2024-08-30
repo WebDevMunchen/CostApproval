@@ -11,12 +11,17 @@ export default function AuthProvider({ children }) {
   const [userApprovals, setUserApprovals] = useState(null);
   const [yearlyApprovals, setYearlyApprovals] = useState(null);
   const [allApprovals, setAllApprovals] = useState(null);
+  const [allApprovalsAdmin, setAllApprovalsAdmin] = useState(null);
   const [allBudgets, setAllBudgets] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(
-    new Date().toLocaleString('de-DE', { month: 'long' })
+    new Date().toLocaleString("de-DE", { month: "long" })
   );
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [selectedMonthAdmin, setSelectedMonthAdmin] = useState("");
+
+  const [selectedYearAdmin, setSelectedYearAdmin] = useState("");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     axiosClient
@@ -45,8 +50,10 @@ export default function AuthProvider({ children }) {
         setIsLoading(false);
       });
 
-      axiosClient
-      .get(`/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}`)
+    axiosClient
+      .get(
+        `/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}&statis=${status}`
+      )
       .then((response) => {
         setAllApprovals(response.data);
         // console.log(response.data);
@@ -58,7 +65,22 @@ export default function AuthProvider({ children }) {
         setIsLoading(false);
       });
 
-      axiosClient
+    axiosClient
+      .get(
+        `/costApproval/getAllApprovals?month=${selectedMonthAdmin}&year=${selectedYearAdmin}&status=${status}`
+      )
+      .then((response) => {
+        setAllApprovalsAdmin(response.data);
+        // console.log(response.data);
+      })
+      .catch((error) => {
+        setAllApprovalsAdmin(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    axiosClient
       .get(`/costApproval/getAllApprovals?year=${selectedYear}`)
       .then((response) => {
         setYearlyApprovals(response.data);
@@ -105,6 +127,8 @@ export default function AuthProvider({ children }) {
       })
       .then((response) => {
         setAllBudgets(response.data);
+        navigate("/admin/dashboard");
+        // navigate("/meineAnfragen")
       })
       .catch((error) => {
         setUser(null);
@@ -140,7 +164,8 @@ export default function AuthProvider({ children }) {
           selectedYear,
           setSelectedMonth,
           setSelectedYear,
-          yearlyApprovals
+          yearlyApprovals,
+          allApprovalsAdmin
         }}
       >
         {children}

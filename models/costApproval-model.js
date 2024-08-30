@@ -12,8 +12,13 @@ const getCurrentMonth = () => {
 };
 
 const updateSchema = new Schema({
-  message: { type: String, required: true },
+  message: { type: String },
   date: { type: Date },
+  sendersFirstName: {type: String},
+  sendersLastName: {type: String},
+  sendersAbbreviation: {type: String},
+  liquidityReason: {type: String},
+  declineReason: {type: String}
 });
 
 const costApprovalSchema = new Schema({

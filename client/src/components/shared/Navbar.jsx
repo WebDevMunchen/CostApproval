@@ -10,7 +10,7 @@ export default function Navbar() {
       <div className="px-3 py-3 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center justify-start">
-            <NavLink to={"/"} className="font-bold flex items-center lg:ml-2.5">
+            <NavLink to={user?.role !== "user" ? "/admin/dashboard" : "/meineAnfragen"} className="font-bold flex items-center lg:ml-2.5">
               <img
                 src="https://res.cloudinary.com/dtrymbvrp/image/upload/v1720596411/favicon_eighgd.png"
                 className="h-14 mr-2"

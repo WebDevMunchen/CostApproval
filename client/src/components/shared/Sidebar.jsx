@@ -94,7 +94,41 @@ export default function Sidebar() {
                 </li>
                 <li>
                   <NavLink
-                    onClick={() => logout()}
+                    to={"/admin/kostenanfragen"}
+                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 320 512"
+                      className="fill-gray-500 group-hover:fill-slate-950 transition-colors duration-200 ml-1"
+                      height="24"
+                    >
+                      <path d="M48.1 240c-.1 2.7-.1 5.3-.1 8l0 16c0 2.7 0 5.3 .1 8L32 272c-17.7 0-32 14.3-32 32s14.3 32 32 32l28.3 0C89.9 419.9 170 480 264 480l24 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-24 0c-57.9 0-108.2-32.4-133.9-80L256 336c17.7 0 32-14.3 32-32s-14.3-32-32-32l-143.8 0c-.1-2.6-.2-5.3-.2-8l0-16c0-2.7 .1-5.4 .2-8L256 240c17.7 0 32-14.3 32-32s-14.3-32-32-32l-125.9 0c25.7-47.6 76-80 133.9-80l24 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-24 0C170 32 89.9 92.1 60.3 176L32 176c-17.7 0-32 14.3-32 32s14.3 32 32 32l16.1 0z" />
+                    </svg>
+                    <span className="ml-5 flex-1 whitespace-nowrap">
+                      Kostenanfragen
+                    </span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to={"/admin/liquidität"}
+                    className="text-base text-gray-900 font-semibold rounded-lg flex items-center p-2 hover:bg-gray-100 group"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 320 512"
+                      className="overflow-visible fill-gray-500 group-hover:fill-slate-950 transition-colors duration-200 ml-1"
+                      height="24"
+                    >
+                      <path d="M512 80c8.8 0 16 7.2 16 16l0 32L48 128l0-32c0-8.8 7.2-16 16-16l448 0zm16 144l0 192c0 8.8-7.2 16-16 16L64 432c-8.8 0-16-7.2-16-16l0-192 480 0zM64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm56 304c-13.3 0-24 10.7-24 24s10.7 24 24 24l48 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-48 0zm128 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-112 0z" />
+                    </svg>
+                    <span className="ml-5">Liquidität</span>
+                  </NavLink>
+                </li>
+                <li>
+                  <NavLink
+                    to={"/admin/budgetVerwalten"}
                     className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
@@ -110,33 +144,6 @@ export default function Sidebar() {
                     </span>
                   </NavLink>
                 </li>
-                <li>
-                  <NavLink
-                    onClick={() => logout()}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                                            className="group-hover:fill-slate-950 transition-colors duration-200"
-                      height="24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 11.625h4.5m-4.5 2.25h4.5m2.121 1.527c-1.171 1.464-3.07 1.464-4.242 0-1.172-1.465-1.172-3.84 0-5.304 1.171-1.464 3.07-1.464 4.242 0M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
-                      />
-                    </svg>
-
-                    <span className="ml-3 flex-1 whitespace-nowrap">
-                      Kostenanfragen
-                    </span>
-                  </NavLink>
-                </li>
-
                 <li>
                   <NavLink
                     onClick={() => logout()}

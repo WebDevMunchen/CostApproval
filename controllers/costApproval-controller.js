@@ -1,4 +1,5 @@
 const CostApproval = require("../models/costApproval-model.js");
+const User = require("../models/user-model.js");
 const ErrorResponse = require("../utils/ErrorResponse.js");
 const asyncWrapper = require("../utils/asyncWrapper.js");
 
@@ -116,7 +117,7 @@ const getSingleApproval = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllApprovals = asyncWrapper(async (req, res, next) => {
-  const { month, year } = req.query;
+  const { month, year, status } = req.query;
   let query = {};
 
   if (month) {
@@ -127,16 +128,160 @@ const getAllApprovals = asyncWrapper(async (req, res, next) => {
     query.year = year;
   }
 
-  const approvals = await CostApproval.find(query).populate("creator");
+  if (status) {
+    query.status = status;
+  }
 
-  console.log(approvals);
+  const approvals = await CostApproval.find(query).populate("creator");
 
   res.json(approvals);
 });
 
-module.exports = {
-  getAllApprovals,
-}
+const approveInquiry = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { status, message } = req.body;
+  const { id: admin_id } = req.user;
+
+  if (!status || !message) {
+    return res.status(400).json({ error: "Status and message are required." });
+  }
+
+  const user = await User.findById(admin_id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const costApproval = await CostApproval.findById(id);
+  if (!costApproval) {
+    return res.status(404).json({ error: "Cost approval not found." });
+  }
+
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 2);
+
+  costApproval.status = status;
+  costApproval.lastUpdate.push({
+    message,
+    date: currentTime,
+    sendersFirstName: user.firstName,
+    sendersLastName: user.lastName,
+    sendersAbbreviation: user.sendersAbbreviation,
+  });
+
+  const updatedApproval = await costApproval.save();
+
+  res.status(200).json(updatedApproval);
+});
+
+const declineInquiry = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { status, message, declineReason } = req.body;
+  const { id: admin_id } = req.user;
+
+  if (!status || !message) {
+    return res.status(400).json({ error: "Status and message are required." });
+  }
+
+  const user = await User.findById(admin_id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const costApproval = await CostApproval.findById(id);
+  if (!costApproval) {
+    return res.status(404).json({ error: "Cost approval not found." });
+  }
+
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 2);
+
+  costApproval.status = status;
+  costApproval.lastUpdate.push({
+    message,
+    date: currentTime,
+    declineReason,
+    sendersFirstName: user.firstName,
+    sendersLastName: user.lastName,
+    sendersAbbreviation: user.sendersAbbreviation,
+  });
+
+  const updatedApproval = await costApproval.save();
+
+  res.status(200).json(updatedApproval);
+});
+
+const approveLiqudity = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { status, message } = req.body;
+  const { id: admin_id } = req.user;
+
+  if (!status || !message) {
+    return res.status(400).json({ error: "Status and message are required." });
+  }
+
+  const user = await User.findById(admin_id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const costApproval = await CostApproval.findById(id);
+  if (!costApproval) {
+    return res.status(404).json({ error: "Cost approval not found." });
+  }
+
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 2);
+
+  costApproval.status = status;
+  costApproval.lastUpdate.push({
+    message,
+    date: currentTime,
+    sendersFirstName: user.firstName,
+    sendersLastName: user.lastName,
+    sendersAbbreviation: user.sendersAbbreviation,
+  });
+
+  const updatedApproval = await costApproval.save();
+
+  res.status(200).json(updatedApproval);
+});
+
+const declineLiquidity = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { status, message, liquidityReason } = req.body;
+  const { id: admin_id } = req.user;
+
+  if (!status || !message) {
+    return res.status(400).json({ error: "Status and message are required." });
+  }
+
+  const user = await User.findById(admin_id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const costApproval = await CostApproval.findById(id);
+  if (!costApproval) {
+    return res.status(404).json({ error: "Cost approval not found." });
+  }
+
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 2);
+
+  costApproval.status = status;
+  costApproval.lastUpdate.push({
+    message,
+    date: currentTime,
+    liquidityReason,
+    sendersFirstName: user.firstName,
+    sendersLastName: user.lastName,
+    sendersAbbreviation: user.sendersAbbreviation,
+  });
+
+  const updatedApproval = await costApproval.save();
+
+  res.status(200).json(updatedApproval);
+});
 
 module.exports = {
   createNewApproval,
@@ -144,5 +289,9 @@ module.exports = {
   getSingleApproval,
   editApproval,
   deleteApproval,
-  getAllApprovals
+  getAllApprovals,
+  approveInquiry,
+  declineInquiry,
+  approveLiqudity,
+  declineLiquidity
 };
