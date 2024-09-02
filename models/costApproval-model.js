@@ -18,7 +18,8 @@ const updateSchema = new Schema({
   sendersLastName: {type: String},
   sendersAbbreviation: {type: String},
   liquidityReason: {type: String},
-  declineReason: {type: String}
+  declineReason: {type: String},
+  pendingReason: {type: String}
 });
 
 const costApprovalSchema = new Schema({

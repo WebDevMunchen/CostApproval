@@ -549,7 +549,7 @@ export default function AdminDashboard() {
                             </thead>
                             <tbody className="bg-white">
                               {months.map((month) => {
-                                // Find the budget and approved amount for the given month and selected year
+                               
                                 const budget = allBudgets?.find(
                                   (b) =>
                                     b.year === selectedYear && b.month === month

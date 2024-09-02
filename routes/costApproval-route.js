@@ -11,6 +11,7 @@ const {
   declineLiquidity,
   approveLiqudity,
   getAllLiquidityApprovals,
+  setPending,
 } = require("../controllers/costApproval-controller");
 const { authenticate } = require("../middlewares/authenticate");
 
@@ -43,6 +44,8 @@ costApprovalRoute
 costApprovalRoute
   .route("/declineInquiry/:id")
   .put(authenticate, declineInquiry);
+
+costApprovalRoute.route("/setPending/:id").put(authenticate, setPending);
 
 costApprovalRoute
   .route("/declineLiquidity/:id")

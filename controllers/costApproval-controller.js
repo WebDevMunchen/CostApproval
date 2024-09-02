@@ -117,25 +117,27 @@ const getSingleApproval = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllApprovals = asyncWrapper(async (req, res, next) => {
-  const { month, year, status } = req.query;
+  const { year, status, month } = req.query;
   let query = {};
-
-  if (month) {
-    query.month = month;
-  }
 
   if (year) {
     query.year = year;
   }
 
+  if (month) {
+    query.month = month;
+  }
+
   if (status) {
-    query.status = status;
+    const statuses = status.split(','); 
+    query.status = { $in: statuses }; 
   }
 
   const approvals = await CostApproval.find(query).populate("creator");
 
   res.json(approvals);
 });
+
 
 const getAllLiquidityApprovals = asyncWrapper(async (req, res, next) => {
   const { liquidity } = req.query;
@@ -217,7 +219,44 @@ const declineInquiry = asyncWrapper(async (req, res, next) => {
     declineReason,
     sendersFirstName: user.firstName,
     sendersLastName: user.lastName,
-    sendersAbbreviation: user.sendersAbbreviation,
+    sendersAbbreviation: user.abbreviation,
+  });
+
+  const updatedApproval = await costApproval.save();
+
+  res.status(200).json(updatedApproval);
+});
+
+const setPending = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { status, message, pendingReason } = req.body;
+  const { id: admin_id } = req.user;
+
+  if (!status || !message) {
+    return res.status(400).json({ error: "Status and message are required." });
+  }
+
+  const user = await User.findById(admin_id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const costApproval = await CostApproval.findById(id);
+  if (!costApproval) {
+    return res.status(404).json({ error: "Cost approval not found." });
+  }
+
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 2);
+
+  costApproval.status = status;
+  costApproval.lastUpdate.push({
+    message,
+    date: currentTime,
+    pendingReason,
+    sendersFirstName: user.firstName,
+    sendersLastName: user.lastName,
+    sendersAbbreviation: user.abbreviation,
   });
 
   const updatedApproval = await costApproval.save();
@@ -309,5 +348,6 @@ module.exports = {
   declineInquiry,
   approveLiqudity,
   declineLiquidity,
-  getAllLiquidityApprovals
+  getAllLiquidityApprovals,
+  setPending
 };
