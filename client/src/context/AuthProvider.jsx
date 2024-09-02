@@ -94,10 +94,10 @@ export default function AuthProvider({ children }) {
       });
 
     axiosClient
-      .get("/budget/getAllBudgets")
+      .get(`/budget/getAllBudgets?year=${selectedYear}`)
       .then((response) => {
         setAllBudgets(response.data);
-        // console.log(response.data);
+        console.log(response.data);
       })
       .catch((error) => {
         setAllBudgets(null);
@@ -165,7 +165,8 @@ export default function AuthProvider({ children }) {
           setSelectedMonth,
           setSelectedYear,
           yearlyApprovals,
-          allApprovalsAdmin
+          allApprovalsAdmin,
+          setAllBudgets
         }}
       >
         {children}

@@ -9,11 +9,27 @@ import EditInquiry from "./components/user/EditInquiry";
 import Authorize from "./context/Authorize";
 import Budget from "./components/administrator/Budget";
 import Inquiries from "./components/administrator/Inquiries";
+import { Bounce, ToastContainer } from "react-toastify";
 
 function App() {
   return (
     <>
       <Navbar />
+
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+        pauseOnHover={false}
+        theme="light"
+        transition={Bounce}
+      />
+
 
       <Routes>
         <Route path="/" element={<Login />} />

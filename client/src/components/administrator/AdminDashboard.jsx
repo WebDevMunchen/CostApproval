@@ -207,7 +207,7 @@ export default function AdminDashboard() {
       },
     },
     dataLabels: {
-      enabled: false, // This hides the data labels on the chart
+      enabled: false,
     },
   };
 

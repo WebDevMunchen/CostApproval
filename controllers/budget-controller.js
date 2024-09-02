@@ -20,8 +20,6 @@ const createBudget = asyncWrapper(async (req, res, next) => {
     amount,
   });
 
-
-
   res.status(201).json(newBudget);
 });
 
@@ -43,7 +41,14 @@ const editBudget = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllBudgets = asyncWrapper(async (req, res, next) => {
-  const budgets = await Budget.find({});
+  const { year } = req.query;
+
+  const query = {};
+  if (year) {
+    query.year = year;
+  }
+
+  const budgets = await Budget.find(query);
 
   res.json(budgets);
 });
