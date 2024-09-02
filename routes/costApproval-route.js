@@ -10,6 +10,7 @@ const {
   declineInquiry,
   declineLiquidity,
   approveLiqudity,
+  getAllLiquidityApprovals,
 } = require("../controllers/costApproval-controller");
 const { authenticate } = require("../middlewares/authenticate");
 
@@ -26,25 +27,29 @@ costApprovalRoute
 costApprovalRoute.route("/getAllApprovals").get(authenticate, getAllApprovals);
 
 costApprovalRoute
+  .route("/getAllLiquidityApprovals")
+  .get(authenticate, getAllLiquidityApprovals);
+
+costApprovalRoute
   .route("/:id")
   .get(authenticate, getSingleApproval)
   .put(authenticate, editApproval)
   .delete(authenticate, deleteApproval);
 
-  costApprovalRoute
+costApprovalRoute
   .route("/approveInquiry/:id")
-  .put(authenticate, approveInquiry)
+  .put(authenticate, approveInquiry);
 
-  costApprovalRoute
+costApprovalRoute
   .route("/declineInquiry/:id")
-  .put(authenticate, declineInquiry)
+  .put(authenticate, declineInquiry);
 
-  costApprovalRoute
+costApprovalRoute
   .route("/declineLiquidity/:id")
-  .put(authenticate, declineLiquidity)
+  .put(authenticate, declineLiquidity);
 
-  costApprovalRoute
+costApprovalRoute
   .route("/approveLiquidity/:id")
-  .put(authenticate, approveLiqudity)
+  .put(authenticate, approveLiqudity);
 
 module.exports = costApprovalRoute;

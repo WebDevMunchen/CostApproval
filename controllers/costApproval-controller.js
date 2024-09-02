@@ -137,6 +137,21 @@ const getAllApprovals = asyncWrapper(async (req, res, next) => {
   res.json(approvals);
 });
 
+const getAllLiquidityApprovals = asyncWrapper(async (req, res, next) => {
+  const { liquidity } = req.query;
+  let query = {};
+
+  // Convert the liquidity query parameter to a boolean if it exists
+  if (liquidity !== undefined) {
+    query.liquidity = liquidity === 'true'; // Convert 'true'/'false' string to boolean
+  }
+
+  const approvals = await CostApproval.find(query).populate("creator");
+
+  res.json(approvals);
+});
+
+
 const approveInquiry = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
   const { status, message } = req.body;
@@ -293,5 +308,6 @@ module.exports = {
   approveInquiry,
   declineInquiry,
   approveLiqudity,
-  declineLiquidity
+  declineLiquidity,
+  getAllLiquidityApprovals
 };
