@@ -12,7 +12,9 @@ export default function AuthProvider({ children }) {
   const [yearlyApprovals, setYearlyApprovals] = useState(null);
   const [allApprovals, setAllApprovals] = useState(null);
   const [allApprovalsAdmin, setAllApprovalsAdmin] = useState(null);
+  const [allLiqudityApprovals, setAllLiqudityApprovals] = useState(null);
   const [allBudgets, setAllBudgets] = useState(null);
+  const [liquidity, setLiquidity] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toLocaleString("de-DE", { month: "long" })
@@ -94,6 +96,19 @@ export default function AuthProvider({ children }) {
       });
 
     axiosClient
+      .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}`)
+      .then((response) => {
+        setAllLiqudityApprovals(response.data);
+        console.log(response.data);
+      })
+      .catch((error) => {
+        setAllLiqudityApprovals(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+
+    axiosClient
       .get(`/budget/getAllBudgets?year=${selectedYear}`)
       .then((response) => {
         setAllBudgets(response.data);
@@ -166,7 +181,11 @@ export default function AuthProvider({ children }) {
           setSelectedYear,
           yearlyApprovals,
           allApprovalsAdmin,
-          setAllBudgets
+          setAllBudgets,
+          allLiqudityApprovals,
+          setAllLiqudityApprovals,
+          selectedMonthAdmin,
+          selectedYearAdmin
         }}
       >
         {children}

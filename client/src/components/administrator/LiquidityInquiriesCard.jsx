@@ -1,6 +1,6 @@
 import axiosClient from "../../utils/axiosClient";
 
-export default function InquiryCardAdmin({ approval }) {
+export default function LiquidityInquiriesCard({ approval }) {
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" };
     return new Date(dateString).toLocaleDateString("de-DE", options);
@@ -73,7 +73,6 @@ export default function InquiryCardAdmin({ approval }) {
         console.error("Error:", error);
       });
   };
-  
 
   const formatExpenseAmount = (amount, cents) => {
     const amountStr = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -207,7 +206,9 @@ export default function InquiryCardAdmin({ approval }) {
                         Ersteller:
                       </div>
                       <div className="text-lg font-medium text-gray-900">
-                        {approval.creator.firstName + " " + approval.creator.lastName}
+                        {approval.creator.firstName +
+                          " " +
+                          approval.creator.lastName}
                       </div>
                     </div>
                   </div>

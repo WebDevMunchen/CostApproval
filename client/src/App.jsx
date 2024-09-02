@@ -10,6 +10,7 @@ import Authorize from "./context/Authorize";
 import Budget from "./components/administrator/Budget";
 import Inquiries from "./components/administrator/Inquiries";
 import { Bounce, ToastContainer } from "react-toastify";
+import LiquidityInquiries from "./components/administrator/LiquidityInquiries";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="budgetVerwalten" element={<Budget />} />
             <Route path="kostenanfragen" element={<Inquiries />} />
+            <Route path="liquidität" element={<LiquidityInquiries />} />
           </Route>
         </Route>
       </Routes>

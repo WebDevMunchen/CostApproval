@@ -15,11 +15,6 @@ export default function AdminDashboard() {
     yearlyApprovals,
   } = useContext(AuthContext);
 
-  // console.log("all approvals:", allApprovals)
-  console.log("all budgets:", allBudgets);
-  console.log("yearlyApprovals:", yearlyApprovals);
-
-  // Extract the total approved amount for the selected month and year
   const totalApprovedAmount = allApprovals?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
       if (status === "Genehmigt") {
@@ -36,7 +31,6 @@ export default function AdminDashboard() {
     totalAmountCents: 0,
   };
 
-  // Adjust the total amount by converting cents to euros
   const adjustedTotalAmount = totalAmount + Math.floor(totalAmountCents / 100);
   const adjustedTotalAmountCents = totalAmountCents % 100;
 
@@ -48,7 +42,6 @@ export default function AdminDashboard() {
   const differenceInEuros =
     budgetAmount - (adjustedTotalAmount + adjustedTotalAmountCents / 100);
 
-  // Calculate the total approved amount for the year
   const totalApprovedForYear = yearlyApprovals?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
       if (status === "Genehmigt") {
@@ -63,7 +56,6 @@ export default function AdminDashboard() {
   const { totalAmount: totalYearlyAmount, totalAmountCents: totalYearlyCents } =
     totalApprovedForYear || { totalAmount: 0, totalAmountCents: 0 };
 
-  // Adjust the yearly total
   const adjustedYearlyTotalAmount =
     totalYearlyAmount + Math.floor(totalYearlyCents / 100);
   const adjustedYearlyTotalCents = totalYearlyCents % 100;
@@ -94,9 +86,8 @@ export default function AdminDashboard() {
 
   const years = [2023, 2024, 2025];
 
-  // Calculate monthly approved amounts
   const monthlyApprovedAmounts = months.map((_, index) => {
-    const monthIndex = index + 1; // Assuming month is 1-indexed
+    const monthIndex = index + 1;
 
     const totalForMonth = yearlyApprovals
       ?.filter(
@@ -118,12 +109,11 @@ export default function AdminDashboard() {
       totalAmount: 0,
       totalAmountCents: 0,
     };
-    return totalAmount + totalAmountCents / 100; // Convert cents to euros
+    return totalAmount + totalAmountCents / 100;
   });
 
-  // Calculate monthly budget amounts
   const monthlyBudgets = months.map((month, index) => {
-    const monthIndex = index + 1; // Assuming month is 1-indexed
+    const monthIndex = index + 1;
 
     const budgetForMonth = allBudgets?.find(
       (budget) =>
@@ -134,7 +124,6 @@ export default function AdminDashboard() {
     return budgetForMonth?.amount || 0;
   });
 
-  // Set up the chart options
   const chartOptions = {
     chart: {
       height: 300,
@@ -235,7 +224,7 @@ export default function AdminDashboard() {
 
                       {budgetAmount === 0 ? (
                         <NavLink
-                          to={"/budgetVerwalten"}
+                          to={"/admin/budgetVerwalten"}
                           className="text-blue-600 hover:text-blue-800 font-semibold text-2xl rounded-lg px-2 py-2 transition duration-300 ease-in-out hover:bg-blue-100"
                         >
                           Budget erstellen
@@ -283,7 +272,10 @@ export default function AdminDashboard() {
                             : "flex items-center text-red-500 text-base font-bold mt-2"
                         }`}
                       >
-                        {`${differenceInEuros.toLocaleString("de-DE")}€`}
+                        {`${differenceInEuros.toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
 
                         {differenceInEuros >= 0 ? (
                           <svg
@@ -435,7 +427,10 @@ export default function AdminDashboard() {
                             : "flex items-center text-red-500 text-base font-bold mt-2"
                         }`}
                       >
-                        {`${differenceInEurosForYear.toLocaleString("de-DE")}€`}
+                        {`${differenceInEurosForYear.toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
 
                         {differenceInEurosForYear >= 0 ? (
                           <svg
