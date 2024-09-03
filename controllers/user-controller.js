@@ -60,6 +60,7 @@ const login = asyncWrapper(async (req, res, next) => {
     id: user._id,
     abbreviation: user.abbreviation,
     firstName: user.firstName,
+    lastName: user.lastName,
     role: user.role,
   };
 

@@ -69,7 +69,7 @@ export default function Budget() {
     "Dezember",
   ];
 
-  const years = ["2022", "2023", "2024", "2025", "2026"];
+  const years = ["2024", "2025", "2026"];
 
   const notifySuccessCreated = () =>
     toast.success("Budget festgelegt!", {

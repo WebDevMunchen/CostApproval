@@ -29,6 +29,7 @@ function App() {
         pauseOnHover={false}
         theme="light"
         transition={Bounce}
+
       />
 
 

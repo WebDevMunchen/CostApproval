@@ -55,4 +55,8 @@ costApprovalRoute
   .route("/approveLiquidity/:id")
   .put(authenticate, approveLiqudity);
 
+  costApprovalRoute
+  .route("/setLiquidityPending/:id")
+  .put(authenticate, approveLiqudity);
+
 module.exports = costApprovalRoute;

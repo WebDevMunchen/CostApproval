@@ -84,7 +84,7 @@ export default function AdminDashboard() {
     "Dezember",
   ];
 
-  const years = [2023, 2024, 2025];
+  const years = [2024, 2025, 2026];
 
   const monthlyApprovedAmounts = months.map((_, index) => {
     const monthIndex = index + 1;

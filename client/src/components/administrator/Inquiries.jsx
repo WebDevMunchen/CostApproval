@@ -9,13 +9,21 @@ export default function Inquiries() {
     selectedYearAdmin,
     setSelectedYearAdmin,
     setStatus,
+    setApprover,  // Assuming setApprover is provided by AuthContext
+    user,
   } = useContext(AuthContext);
 
   const [selectedStatuses, setSelectedStatuses] = useState([]);
+  const [assignedToMe, setAssignedToMe] = useState(true); // Default to true
 
   useEffect(() => {
     setStatus(selectedStatuses.join(","));
-  }, [selectedStatuses, setStatus]);
+    if (assignedToMe) {
+      setApprover(user.firstName); // Set approver to user's first name
+    } else {
+      setApprover(""); // Clear approver when checkbox is unchecked
+    }
+  }, [selectedStatuses, assignedToMe, setStatus, setApprover, user.firstName]);
 
   const handleStatusChange = (status) => {
     setSelectedStatuses((prev) =>
@@ -27,6 +35,10 @@ export default function Inquiries() {
 
   const handleYearChange = (e) => {
     setSelectedYearAdmin(e.target.value);
+  };
+
+  const handleAssignedToMeChange = () => {
+    setAssignedToMe((prev) => !prev);
   };
 
   const sortApprovals = (approvals) => {
@@ -56,9 +68,9 @@ export default function Inquiries() {
                   className="border-gray-200 border-2 p-1 rounded-md ml-2 hover:cursor-pointer"
                 >
                   {/* Add years dynamically or statically */}
+                  <option value="2026">2026</option>
+                  <option value="2025">2025</option>
                   <option value="2024">2024</option>
-                  <option value="2023">2023</option>
-                  <option value="2022">2022</option>
                   {/* Add more years as needed */}
                 </select>
               </label>
@@ -100,16 +112,22 @@ export default function Inquiries() {
                 />
                 <span className="ml-2">Abgelehnt</span>
               </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="checkbox checkbox-primary"
+                  checked={assignedToMe} // Default to checked
+                  onChange={handleAssignedToMeChange}
+                />
+                <span className="ml-2">Mir zugewiesen</span>
+              </label>
             </div>
 
             {!allApprovalsAdmin ? (
               <p>Loading...</p>
             ) : (
               sortApprovals(allApprovalsAdmin).map((approval) => (
-                <InquiryCardAdmin
-                  key={approval._id}
-                  approval={approval}
-                />
+                <InquiryCardAdmin key={approval._id} approval={approval} />
               ))
             )}
           </div>

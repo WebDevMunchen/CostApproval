@@ -21,100 +21,124 @@ export default function AuthProvider({ children }) {
   );
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonthAdmin, setSelectedMonthAdmin] = useState("");
-
   const [selectedYearAdmin, setSelectedYearAdmin] = useState(new Date().getFullYear());
   const [status, setStatus] = useState("");
+  const [approver, setApprover] = useState(""); // Approver state
 
+  // Fetch user data and set approver
   useEffect(() => {
+    // Fetch user profile
     axiosClient
       .get("/user/getProfile")
       .then((response) => {
-        setUser(response.data);
+        const user = response.data;
+        setUser(user);
+
+        // Set approver to user's first name
+        setApprover(user.firstName);
       })
-      .catch((error) => {
+      .catch(() => {
         setUser(null);
       })
       .finally(() => {
         setIsLoading(false);
       });
+  }, []);
 
-    axiosClient
-      .get("/costApproval/getUserApprovals")
-      .then((response) => {
-        setUserApprovals(response.data);
-      })
-      .catch((error) => {
-        setUserApprovals(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+  // Fetch data dependent on approver and other filters
+  useEffect(() => {
+    if (!user) return; // Wait until user data is available
 
-    axiosClient
-      .get(
-        `/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}&status=${status}`
-      )
-      .then((response) => {
-        setAllApprovals(response.data);
-      })
-      .catch((error) => {
-        setAllApprovals(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-
+    const fetchApprovals = () => {
+      // Fetch user approvals
       axiosClient
-      .get(
-        `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}`
-      )
-      .then((response) => {
-        setAllApprovalsAdmin(response.data);
-        console.log(response.data);
-      })
-      .catch((error) => {
-        setAllApprovalsAdmin(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+        .get("/costApproval/getUserApprovals")
+        .then((response) => {
+          setUserApprovals(response.data);
+        })
+        .catch(() => {
+          setUserApprovals(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
 
-    axiosClient
-      .get(`/costApproval/getAllApprovals?year=${selectedYear}`)
-      .then((response) => {
-        setYearlyApprovals(response.data);
-      })
-      .catch((error) => {
-        setYearlyApprovals(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      // Fetch all approvals based on selected month and year
+      axiosClient
+        .get(
+          `/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}&status=${status}`
+        )
+        .then((response) => {
+          setAllApprovals(response.data);
+        })
+        .catch(() => {
+          setAllApprovals(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
 
-    axiosClient
-      .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}`)
-      .then((response) => {
-        setAllLiqudityApprovals(response.data);
-      })
-      .catch((error) => {
-        setAllLiqudityApprovals(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      // Fetch all admin approvals with optional approver filter
+      axiosClient
+        .get(
+          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}${
+            approver ? `&approver=${approver}` : ""
+          }`
+        )
+        .then((response) => {
+          setAllApprovalsAdmin(response.data);
+          console.log("Approvals fetched with approver filter:", response.data);
+        })
+        .catch(() => {
+          setAllApprovalsAdmin(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
 
-    axiosClient
-      .get(`/budget/getAllBudgets?year=${selectedYear}`)
-      .then((response) => {
-        setAllBudgets(response.data);
-      })
-      .catch((error) => {
-        setAllBudgets(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [selectedMonth, selectedYear, selectedYearAdmin, status]);
+      // Fetch yearly approvals
+      axiosClient
+        .get(`/costApproval/getAllApprovals?year=${selectedYear}`)
+        .then((response) => {
+          setYearlyApprovals(response.data);
+        })
+        .catch(() => {
+          setYearlyApprovals(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+
+      // Fetch liquidity approvals
+      axiosClient
+        .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}`)
+        .then((response) => {
+          setAllLiqudityApprovals(response.data);
+        })
+        .catch(() => {
+          setAllLiqudityApprovals(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+
+      // Fetch all budgets
+      axiosClient
+        .get(`/budget/getAllBudgets?year=${selectedYear}`)
+        .then((response) => {
+          setAllBudgets(response.data);
+        })
+        .catch(() => {
+          setAllBudgets(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    };
+
+    // Trigger data fetching when approver is set
+    fetchApprovals();
+  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status]); // Dependency array includes `approver`
 
   const login = async (data) => {
     axiosClient
@@ -127,19 +151,19 @@ export default function AuthProvider({ children }) {
       .then((response) => {
         setUserApprovals(response.data);
 
-        return axiosClient("/costApproval/getAllApprovals");
+        return axiosClient(`/costApproval/getAllApprovals`);
       })
       .then((response) => {
         setAllApprovals(response.data);
 
-        return axiosClient("/budget/getAllBudgets");
+        return axiosClient(`/budget/getAllBudgets`);
       })
       .then((response) => {
         setAllBudgets(response.data);
         navigate("/admin/dashboard");
         // navigate("/meineAnfragen")
       })
-      .catch((error) => {
+      .catch(() => {
         setUser(null);
       })
       .finally(() => {
@@ -150,44 +174,45 @@ export default function AuthProvider({ children }) {
   const logout = async () => {
     axiosClient
       .post("/user/logout")
-      .then((response) => {
+      .then(() => {
         setUser(null);
         navigate("/");
       })
-      .catch((error) => {});
+      .catch(() => {});
   };
 
   return (
-    <>
-      <AuthContext.Provider
-        value={{
-          login,
-          logout,
-          user,
-          isLoading,
-          userApprovals,
-          setUserApprovals,
-          allBudgets,
-          allApprovals,
-          selectedMonth,
-          selectedYear,
-          setSelectedMonth,
-          setSelectedYear,
-          yearlyApprovals,
-          allApprovalsAdmin,
-          setAllBudgets,
-          allLiqudityApprovals,
-          setAllLiqudityApprovals,
-          selectedMonthAdmin,
-          selectedYearAdmin,
-          setStatus,
-          setSelectedYearAdmin,
-          setAllApprovalsAdmin,
-          status
-        }}
-      >
-        {children}
-      </AuthContext.Provider>
-    </>
+    <AuthContext.Provider
+      value={{
+        login,
+        logout,
+        user,
+        isLoading,
+        userApprovals,
+        setUserApprovals,
+        allBudgets,
+        allApprovals,
+        selectedMonth,
+        selectedYear,
+        setSelectedMonth,
+        setSelectedYear,
+        yearlyApprovals,
+        allApprovalsAdmin,
+        setAllBudgets,
+        allLiqudityApprovals,
+        setAllLiqudityApprovals,
+        selectedMonthAdmin,
+        selectedYearAdmin,
+        setStatus,
+        setSelectedYearAdmin,
+        setAllApprovalsAdmin,
+        status,
+        liquidity,
+        approver,
+        setApprover, // Add setter for approver
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 }

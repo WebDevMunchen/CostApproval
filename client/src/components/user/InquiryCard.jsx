@@ -11,6 +11,8 @@ export default function InquiryCard({ approval }) {
     return new Date(dateString).toLocaleDateString("de-DE", options);
   };
 
+console.log(approval)
+
   const deleteApproval = () => {
     axiosClient
       .delete(`/costApproval/${approval._id}`)
@@ -204,10 +206,10 @@ export default function InquiryCard({ approval }) {
                         Datum der letzten Änderung:
                       </div>
                       <div className="text-lg font-medium text-gray-500">
-                        {approval.lastUpdate.length === 0
-                          ? "Noch keine Antwort"
-                          : approval.lastUpdate}
-                      </div>
+  {approval.lastUpdate.length > 0
+    ? formatDate(approval.lastUpdate[approval.lastUpdate.length - 1].date)
+    : "Noch keine Antwort"}
+</div>
                     </div>
                   </div>
                 </td>
