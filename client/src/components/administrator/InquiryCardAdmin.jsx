@@ -5,7 +5,7 @@ import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function InquiryCardAdmin({ approval }) {
-  const { setAllApprovalsAdmin, selectedYearAdmin, status, user } =
+  const { setAllApprovalsAdmin, selectedYearAdmin, status, user, approver } =
     useContext(AuthContext);
 
   const modalRef = useRef(null);
@@ -59,7 +59,9 @@ export default function InquiryCardAdmin({ approval }) {
       })
       .then((response) => {
         return axiosClient.get(
-          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}`
+          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}${
+            approver ? `&approver=${approver}` : ""
+          }`
         );
       })
       .then((response) => {
@@ -83,7 +85,9 @@ export default function InquiryCardAdmin({ approval }) {
       })
       .then((response) => {
         return axiosClient.get(
-          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}`
+          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}${
+            approver ? `&approver=${approver}` : ""
+          }`
         );
       })
       .then((response) => {
@@ -108,7 +112,9 @@ export default function InquiryCardAdmin({ approval }) {
       })
       .then((response) => {
         return axiosClient.get(
-          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}`
+          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}${
+            approver ? `&approver=${approver}` : ""
+          }`
         );
       })
       .then((response) => {

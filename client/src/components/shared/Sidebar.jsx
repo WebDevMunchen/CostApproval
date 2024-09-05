@@ -25,8 +25,6 @@ export default function Sidebar() {
     }
   });
 
-  console.log(inquiryCount);
-
   return (
     <aside
       id="sidebar"

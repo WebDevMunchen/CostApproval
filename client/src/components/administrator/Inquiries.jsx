@@ -9,7 +9,7 @@ export default function Inquiries() {
     selectedYearAdmin,
     setSelectedYearAdmin,
     setStatus,
-    setApprover,  // Assuming setApprover is provided by AuthContext
+    setApprover, // Assuming setApprover is provided by AuthContext
     user,
   } = useContext(AuthContext);
 
@@ -58,7 +58,7 @@ export default function Inquiries() {
       <div className="flex overflow-hidden bg-white pt-16">
         <Sidebar />
         <div className="h-[100vh] w-full bg-gray-50 relative overflow-y-auto">
-          <div className="flex flex-col ml-96 w-9/12 gap-4 mt-16">
+          <div className="flex flex-col ml-96 w-9/12 gap-4 mt-10">
             <div>
               <label className="text-lg font-semibold leading-tight tracking-tight text-gray-900 dark:text-white mb-4">
                 Kostenanfragen für das Jahr:
@@ -67,15 +67,13 @@ export default function Inquiries() {
                   onChange={handleYearChange}
                   className="border-gray-200 border-2 p-1 rounded-md ml-2 hover:cursor-pointer"
                 >
-                  {/* Add years dynamically or statically */}
                   <option value="2026">2026</option>
                   <option value="2025">2025</option>
                   <option value="2024">2024</option>
-                  {/* Add more years as needed */}
                 </select>
               </label>
             </div>
-            <div className="flex gap-2 items-center">
+            <div className="font-semibold flex gap-2 items-center mb-2">
               <label className="flex items-center">
                 <input
                   type="checkbox"

@@ -3,21 +3,30 @@ import { NavLink } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
 
 export default function Navbar() {
-  const { user } = useContext(AuthContext);
+  const { user, titleSearch, setTitleSearch } = useContext(AuthContext);
+
+  // Handle input change to update the titleSearch state
+  const handleSearchChange = (event) => {
+    setTitleSearch(event.target.value);
+    console.log("Search query updated:", event.target.value);
+  };
 
   return (
     <nav className="bg-white border-b border-gray-200 fixed z-30 w-full">
       <div className="px-3 py-3 lg:px-5 lg:pl-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center justify-start">
-            <NavLink to={user?.role !== "user" ? "/admin/dashboard" : "/meineAnfragen"} className="font-bold flex items-center lg:ml-2.5">
+            <NavLink
+              to={user?.role !== "user" ? "/admin/dashboard" : "/meineAnfragen"}
+              className="font-bold flex items-center lg:ml-2.5"
+            >
               <img
                 src="https://res.cloudinary.com/dtrymbvrp/image/upload/v1720596411/favicon_eighgd.png"
                 className="h-14 mr-2"
                 alt="Rent Group Logo"
               />
               <div className="flex flex-col">
-                <span className="font-anek text-xl self-center whitespace-nowrap ">
+                <span className="font-anek text-xl self-center whitespace-nowrap">
                   Rent.Group
                 </span>
                 <span className="font-anek self-center whitespace-nowrap">
@@ -25,11 +34,16 @@ export default function Navbar() {
                 </span>
               </div>
             </NavLink>
-            <form action="#" method="GET" className="hidden lg:block lg:pl-20">
-              <label htmlFor="topbar-search" className="sr-only">
-                Search
-              </label>
-              <div className="mt-1 relative lg:w-72">
+            <div className="hidden lg:block lg:pl-20">
+              <div
+                className={
+                  window.location.pathname !== "/admin/kostenanfragen" &&
+                  window.location.pathname !== "/admin/liquidität" &&
+                  window.location.pathname !== "/meineAnfragen"
+                    ? "hidden"
+                    : "mt-1 relative lg:w-72"
+                }
+              >
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <svg
                     className="w-5 h-5 text-gray-500"
@@ -46,13 +60,15 @@ export default function Navbar() {
                 </div>
                 <input
                   type="text"
-                  name="email"
+                  name="search"
                   id="topbar-search"
-                  className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full pl-10 p-2.5"
-                  placeholder="Search"
+                  className="visible bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full pl-10 p-2.5"
+                  placeholder="Suchen"
+                  value={titleSearch}
+                  onChange={handleSearchChange}
                 />
               </div>
-            </form>
+            </div>
           </div>
           <div className="flex items-center">
             {!user ? (

@@ -24,6 +24,7 @@ export default function AuthProvider({ children }) {
   const [selectedYearAdmin, setSelectedYearAdmin] = useState(new Date().getFullYear());
   const [status, setStatus] = useState("");
   const [approver, setApprover] = useState(""); // Approver state
+  const [titleSearch, setTitleSearch] = useState('');
 
   // Fetch user data and set approver
   useEffect(() => {
@@ -52,9 +53,10 @@ export default function AuthProvider({ children }) {
     const fetchApprovals = () => {
       // Fetch user approvals
       axiosClient
-        .get("/costApproval/getUserApprovals")
+        .get(`/costApproval/getUserApprovals?status=${status}&year=${selectedYear}&title=${titleSearch}`)
         .then((response) => {
           setUserApprovals(response.data);
+          console.log(`/costApproval/getUserApprovals?title=${titleSearch}`)
         })
         .catch(() => {
           setUserApprovals(null);
@@ -138,7 +140,7 @@ export default function AuthProvider({ children }) {
 
     // Trigger data fetching when approver is set
     fetchApprovals();
-  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status]); // Dependency array includes `approver`
+  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status, titleSearch]); // Dependency array includes `approver`
 
   const login = async (data) => {
     axiosClient
@@ -151,7 +153,7 @@ export default function AuthProvider({ children }) {
       .then((response) => {
         setUserApprovals(response.data);
 
-        return axiosClient(`/costApproval/getAllApprovals`);
+        return axiosClient(`/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}&status=${status}`);
       })
       .then((response) => {
         setAllApprovals(response.data);
@@ -209,7 +211,9 @@ export default function AuthProvider({ children }) {
         status,
         liquidity,
         approver,
-        setApprover, // Add setter for approver
+        setApprover,
+        setTitleSearch,
+        titleSearch // Add setter for approver
       }}
     >
       {children}

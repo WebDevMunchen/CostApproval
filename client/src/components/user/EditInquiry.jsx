@@ -4,6 +4,8 @@ import Sidebar from "../shared/Sidebar";
 import { useForm } from "react-hook-form";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
+import { Bounce, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function EditInquiry() {
   const { setUserApprovals } = useContext(AuthContext);
@@ -41,11 +43,26 @@ export default function EditInquiry() {
       .then((response) => {
         setUserApprovals(response.data);
         navigate("/meineAnfragen");
+        notifySuccessUpdated();
       })
       .catch((error) => {
         console.log(error);
       });
   };
+
+  const notifySuccessUpdated = () =>
+    toast.success("Anfrage aktualisiert!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+      className: "mt-14 mr-6",
+    });
 
   return (
     <>
@@ -72,7 +89,7 @@ export default function EditInquiry() {
                         </label>
                         <select
                           {...register("typeOfExpense", { required: true })}
-                          value={singleInquiry.typeOfExpense}
+                          defaultValue={singleInquiry.typeOfExpense}
                           name="typeOfExpense"
                           id="typeOfExpense"
                           className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
@@ -255,7 +272,7 @@ export default function EditInquiry() {
                         </label>
                         <select
                           {...register("priority", { required: true })}
-                          value={singleInquiry.priority}
+                          defaultValue={singleInquiry.priority}
                           name="priority"
                           id="priority"
                           className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"

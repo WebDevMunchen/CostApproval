@@ -13,7 +13,12 @@ export default function AdminDashboard() {
     setSelectedMonth,
     setSelectedYear,
     yearlyApprovals,
+    setStatus
   } = useContext(AuthContext);
+
+  useEffect(() => {
+    setStatus("")
+  }, [])
 
   const totalApprovedAmount = allApprovals?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
@@ -324,14 +329,16 @@ export default function AdminDashboard() {
                       </span>
                     </div>
 
-                    <div className="flex-shrink-0 flex flex-col items-end text-base font-bold text-green-500">
+                    <div className="flex-shrink-0 flex flex-col items-end text-base font-bold">
                       <div className="flex items-center">
-                        <span className="text-base font-semibold text-gray-500 mr-2">
+                        <span className="text-base font-semibold text-gray-500 mr-2 ">
                           Noch öffen:
                         </span>
-                        <span>
+                        <span className="text-green-500">
                           {allApprovals?.filter(
-                            (approval) => approval.status !== "Genehmigt"
+                            (approval) =>
+                              approval.status === "Neu" ||
+                              approval.status === "In Prüfung"
                           ).length || 0}
                         </span>
 
@@ -341,7 +348,7 @@ export default function AdminDashboard() {
                           viewBox="0 0 24 24"
                           strokeWidth={1.5}
                           stroke="currentColor"
-                          className="size-6 ml-2"
+                          className="size-6 ml-2 text-green-500"
                         >
                           <path
                             strokeLinecap="round"
@@ -355,7 +362,7 @@ export default function AdminDashboard() {
                         <span className="text-base font-semibold text-gray-500 mr-2">
                           Abgeschlossen:
                         </span>
-                        <span>
+                        <span className="text-blue-500">
                           {allApprovals?.filter(
                             (approval) => approval.status === "Genehmigt"
                           ).length || 0}
@@ -367,12 +374,37 @@ export default function AdminDashboard() {
                           viewBox="0 0 24 24"
                           strokeWidth={1.5}
                           stroke="currentColor"
-                          className="size-6 ml-2"
+                          className="size-6 ml-2 text-blue-500"
                         >
                           <path
                             strokeLinecap="round"
                             strokeLinejoin="round"
                             d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 11.625h4.5m-4.5 2.25h4.5m2.121 1.527c-1.171 1.464-3.07 1.464-4.242 0-1.172-1.465-1.172-3.84 0-5.304 1.171-1.464 3.07-1.464 4.242 0M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z"
+                          />
+                        </svg>
+                      </div>
+                      <div className="flex items-center mt-1">
+                        <span className="text-base font-semibold text-gray-500 mr-2">
+                          Abgelehnt:
+                        </span>
+                        <span className="text-red-500">
+                          {allApprovals?.filter(
+                            (approval) => approval.status === "Abgelehnt"
+                          ).length || 0}
+                        </span>
+
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          strokeWidth={1.5}
+                          stroke="currentColor"
+                          className="size-6 ml-2 text-red-500"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
                           />
                         </svg>
                       </div>
@@ -549,7 +581,6 @@ export default function AdminDashboard() {
                             </thead>
                             <tbody className="bg-white">
                               {months.map((month) => {
-                               
                                 const budget = allBudgets?.find(
                                   (b) =>
                                     b.year === selectedYear && b.month === month

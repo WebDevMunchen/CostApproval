@@ -17,7 +17,7 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
   } = req.body;
 
   const creator = req.user;
-  console.log(creator);
+
   let liquidity = false;
   let liquidityStatus;
 
@@ -45,7 +45,7 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
   if (approver === "Ben") {
     address = "denis.hadzipasic@partyrent.com";
   } else if (approver === "Tobias") {
-    address = "it.muenchen@partyrent.com";
+    address = "denis.hadzipasic@partyrent.com";
   } else {
     address = "webdevmuenchen@gmail.com";
   }
@@ -65,11 +65,12 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
 
   const formattedCents = expenseAmountCent.toString().padStart(2, "0");
   const formattedAmount = `${expenseAmount},${formattedCents} €`;
+  const formattedDeadline = new Date(deadline).toLocaleDateString("de-DE");
 
   const commonHtmlContent = `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <p>Es gibt eine neue Anfrage zur Kostenfreigabe:</p>
-    <p><strong>Bitte beachten, dass bei diesem Antrag zunächst die Liquidität durch die Buchhaltung geprüft werden muss!</strong></p>
+    <p><strong>Bitte beachten, ob bei dieser Anfrage zunächst die Liquidität durch die Buchhaltung geprüft werden muss!</strong></p>
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
       <thead>
         <tr>
@@ -98,7 +99,7 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
         </tr>
         <tr>
           <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Fälligkeitsdatum</td>
-          <td style="border: 1px solid #ddd; padding: 8px;">${deadline}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedDeadline}</td>
         </tr>
         <tr>
           <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Priorität</td>
@@ -124,29 +125,31 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
         </tr>
       </tbody>
     </table>
-<div style="text-align: center; margin-top: 20px;">
-  <a href="http://localhost:5173/admin/dashboard" style="
-    display: inline-block;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: bold;
-    padding: 12px 24px;
-    color: #fff;
-    text-transform: uppercase;
-    border-radius: 8px;
-    background-color: #1d4ed8;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    margin-right: 5px;
-    text-align: center;
-    cursor: pointer;
-    width: calc(50% - 10px);
-    margin-top: 10px;
-    line-height: 1.5;
-" onmouseover="this.style.backgroundColor='#1e40af'; this.style.boxShadow='0 6px 8px rgba(0, 0, 0, 0.2)';" onmouseout="this.style.backgroundColor='#1d4ed8'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
-    Zur Kostenfreigabe
-  </a>
-</div>
+  <br />
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+    <tr>
+      <td align="center" bgcolor="#1d4ed8" style="
+        padding: 12px 24px;
+        background-color: #1d4ed8;
+      ">
+        <a 
+          href="http://localhost:5173/admin/dashboard" 
+          target="_blank" 
+          style="
+            font-size: 16px;
+            font-weight: bold;
+            color: #ffffff;
+            text-decoration: none;
+            text-transform: uppercase;
+            display: inline-block;
+          "
+        >
+          Zur Kostenfreigabe
+        </a>
+      </td>
+    </tr>
+  </table>
 
   </div>`;
 
@@ -170,7 +173,7 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
     subject: "Kostenfreigabetool - Rent.Group München",
     text: "Kostenfreigabetool - Rent.Group München",
     html: commonHtmlContent.replace(
-      "<p><strong>Bitte beachten, dass bei diesem Antrag zunächst die Liquidität durch die Buchhaltung geprüft werden muss!</strong></p>",
+      "<p><strong>Bitte beachten, ob bei dieser Anfrage zunächst die Liquidität durch die Buchhaltung geprüft werden muss!</strong></p>",
       "<p><strong>Für diese Anfrage muss zunächst die Liquidität genehmigt werden!</strong></p>"
     ),
   };
@@ -207,9 +210,16 @@ const editApproval = asyncWrapper(async (req, res, next) => {
     deadline,
     priority,
   } = req.body;
+
   const { id } = req.params;
 
-  const creator = req.user.id;
+  const creator = req.user;
+
+  const oldApproval = await CostApproval.findById(id);
+  if (!oldApproval) {
+    throw new ErrorResponse("Approval not found!", 404);
+  }
+
   let liquidity = false;
   let liquidityStatus;
 
@@ -217,42 +227,406 @@ const editApproval = asyncWrapper(async (req, res, next) => {
     liquidity = true;
     liquidityStatus = "In Prüfung";
   } else {
+    liquidity = false;
     liquidityStatus = null;
   }
 
-  const newExpense = await CostApproval.findByIdAndUpdate(id, {
-    creator,
-    typeOfExpense,
-    title,
-    additionalMessage,
-    expenseAmount,
-    expenseAmountCent,
-    approver,
-    deadline,
-    liquidity,
-    liquidityStatus,
-    priority,
+  const approval = await CostApproval.findByIdAndUpdate(
+    id,
+    {
+      typeOfExpense,
+      title,
+      additionalMessage,
+      expenseAmount,
+      expenseAmountCent,
+      approver,
+      deadline,
+      liquidity,
+      liquidityStatus,
+      priority,
+    },
+    { new: true }
+  );
+
+  let address = "";
+
+  if (approval.approver === "Ben") {
+    address = "denis.hadzipasic@partyrent.com";
+  } else if (approval.approver === "Tobias") {
+    address = "denis.hadzipasic@partyrent.com";
+  } else {
+    address = "webdevmuenchen@gmail.com";
+  }
+
+  const additionalAddress = approval.liquidity
+    ? "denis.hadzipasic@partyrent.com"
+    : "";
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.APP_PASSWORD,
+    },
   });
 
-  res.status(201).json(newExpense);
+  const formattedCents = approval.expenseAmountCent.toString().padStart(2, "0");
+  const formattedAmount = `${approval.expenseAmount},${formattedCents} €`;
+  const formattedDeadline = new Date(approval.deadline).toLocaleDateString(
+    "de-DE"
+  );
+
+  const oldFormattedAmount = `${
+    oldApproval.expenseAmount
+  },${oldApproval.expenseAmountCent.toString().padStart(2, "0")} €`;
+  const oldFormattedDeadline = new Date(
+    oldApproval.deadline
+  ).toLocaleDateString("de-DE");
+
+  const commonHtmlContent = `
+<div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <p>${creator.firstName} ${
+    creator.lastName
+  } hat folgende Anfrage zur Kostenfreigabe geändert:</p>
+    <p><strong>Bitte beachten, ob bei dieser Anfrage zunächst die Liquidität durch die Buchhaltung geprüft werden muss!</strong></p>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="border: 1px solid #ddd; padding: 8px; font-weight: bold;"></th>
+          <th style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Vorher</th>
+          <th style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Aktualisiert</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr style="background-color: #f4f4f4;">
+          <td style="border: 1px solid #ddd; padding: 8px;"><strong>Art der Kosten</strong></td>
+          <td style="border: 1px solid #ddd; padding: 8px; ${
+            oldApproval.typeOfExpense !== approval.typeOfExpense
+              ? "text-decoration: line-through;"
+              : ""
+          }">${oldApproval.typeOfExpense}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${
+            approval.typeOfExpense
+          }</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;"><strong>Artbeschreibung</strong></td>
+          <td style="border: 1px solid #ddd; padding: 8px; ${
+            oldApproval.title !== approval.title
+              ? "text-decoration: line-through;"
+              : ""
+          }">${oldApproval.title}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${
+            approval.title
+          }</td>
+        </tr>
+        <tr style="background-color: #f4f4f4;">
+          <td style="border: 1px solid #ddd; padding: 8px;"><strong>Welche Kosten entstehen?</strong></td>
+          <td style="border: 1px solid #ddd; padding: 8px; ${
+            oldFormattedAmount !== formattedAmount
+              ? "text-decoration: line-through;"
+              : ""
+          }">${oldFormattedAmount}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedAmount}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;"><strong>Fälligkeitsdatum</strong></td>
+          <td style="border: 1px solid #ddd; padding: 8px; ${
+            oldFormattedDeadline !== formattedDeadline
+              ? "text-decoration: line-through;"
+              : ""
+          }">${oldFormattedDeadline}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedDeadline}</td>
+        </tr>
+        <tr style="background-color: #f4f4f4;">
+          <td style="border: 1px solid #ddd; padding: 8px;"><strong>Priorität</strong></td>
+          <td style="border: 1px solid #ddd; padding: 8px; ${
+            oldApproval.priority !== approval.priority
+              ? "text-decoration: line-through;"
+              : ""
+          }">${oldApproval.priority}</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${
+            approval.priority
+          }</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Liquidität</td>
+          <td style="border: 1px solid #ddd; padding: 8px; ${
+            oldApproval.liquidity !== approval.liquidity
+              ? "text-decoration: line-through;"
+              : ""
+          }">${
+    oldApproval.liquidity ? "war benötigt" : "war nicht benötigt"
+  }</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${
+            approval.liquidity ? "wird benötigt" : "wird nicht benötigt"
+          }</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;" colspan="2">Was wurde benötigt?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${
+            oldApproval.additionalMessage
+          }</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;" colspan="2">Was wird benötigt?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${
+            approval.additionalMessage
+          }</td>
+        </tr>
+      </tbody>
+    </table>
+    <br />
+
+    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+      <tr>
+        <td align="center" bgcolor="#1d4ed8" style="
+          padding: 12px 24px;
+          background-color: #1d4ed8;
+        ">
+          <a 
+            href="http://localhost:5173/admin/dashboard" 
+            target="_blank" 
+            style="
+              font-size: 16px;
+              font-weight: bold;
+              color: #ffffff;
+              text-decoration: none;
+              text-transform: uppercase;
+              display: inline-block;
+            "
+          >
+            Zur Kostenfreigabe
+          </a>
+        </td>
+      </tr>
+    </table>
+</div>`;
+
+  const primaryMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Training Academy - No reply",
+      address: process.env.USER,
+    },
+    to: address,
+    subject: "Kostenfreigabetool - Rent.Group München ",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  transporter.sendMail(primaryMailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending primary email:", error);
+    } else {
+      console.log("Primary email sent:", info.response);
+    }
+  });
+
+  if (additionalAddress) {
+    const additionalMailOptions = {
+      ...primaryMailOptions,
+      to: additionalAddress,
+    };
+
+    transporter.sendMail(additionalMailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending additional email:", error);
+      } else {
+        console.log("Additional email sent:", info.response);
+      }
+    });
+  }
+
+  res.status(201).json(approval);
 });
 
 const deleteApproval = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
+  const creator = req.user;
 
   const approval = await CostApproval.findByIdAndDelete(id);
 
   if (!approval) {
     throw new ErrorResponse("Approval not found!", 404);
-  } else {
-    res.json({ message: "Deleted!" });
   }
+
+  let address = "";
+
+  if (approval.approver === "Ben") {
+    address = "denis.hadzipasic@partyrent.com";
+  } else if (approval.approver === "Tobias") {
+    address = "denis.hadzipasic@partyrent.com";
+  } else {
+    address = "webdevmuenchen@gmail.com";
+  }
+
+  const additionalAddress = approval.liquidity
+    ? "denis.hadzipasic@partyrent.com"
+    : "";
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+
+  const formattedCents = approval.expenseAmountCent.toString().padStart(2, "0");
+  const formattedAmount = `${approval.expenseAmount},${formattedCents} €`;
+  const formattedDeadline = new Date(approval.deadline).toLocaleDateString(
+    "de-DE"
+  );
+
+  const commonHtmlContent = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <p>${creator.firstName} ${
+    creator.lastName
+  } hat folgende Anfrage zur Kostenfreigabe gelöscht:</p>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Ersteller:</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${
+            creator.firstName
+          } ${creator.lastName}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Art der Kosten</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${
+            approval.typeOfExpense
+          }</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Artbeschreibung</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${
+            approval.title
+          }</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Welche Kosten entstehen?</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${formattedAmount}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Fälligkeitsdatum</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedDeadline}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Priorität</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${
+            approval.priority
+          }</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Liqudität</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${
+            approval.liquidity ? "war benötigt" : "war nicht benötigt"
+          }</td>
+        </tr>
+      </tbody>
+    </table>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;" colspan="2">Was wurde benötigt?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${
+            approval.additionalMessage
+          }</td>
+        </tr>
+      </tbody>
+    </table>
+  <br />
+  </div>`;
+
+  const primaryMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: address,
+    subject: "Kostenfreigabetool - Rent.Group München ",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  const additionalMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: additionalAddress,
+    subject: "Kostenfreigabetool - Rent.Group München",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  transporter.sendMail(primaryMailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending primary email:", error);
+    } else {
+      console.log("Primary email sent:", info.response);
+    }
+  });
+
+  if (additionalAddress) {
+    transporter.sendMail(additionalMailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending additional email:", error);
+      } else {
+        console.log("Additional email sent:", info.response);
+      }
+    });
+  }
+  res.json(approval);
 });
 
 const getUserApprovals = asyncWrapper(async (req, res, next) => {
   const { id } = req.user;
+  const { title, status, year } = req.query;
 
-  const approvals = await CostApproval.find({ creator: id })
+  const query = { creator: id };
+
+  if (title) {
+    query.title = new RegExp(title, 'i'); 
+  }
+
+  if (status) {
+    query.status = status
+  }
+
+  if (year) {
+    query.year = year
+  }
+
+  const approvals = await CostApproval.find(query)
     .populate("creator")
     .sort({ dateOfCreation: -1 });
 
@@ -272,12 +646,10 @@ const getSingleApproval = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllApprovals = asyncWrapper(async (req, res, next) => {
-  const { year, status, month, approver } = req.query; // Add approver to query parameters
+  const { year, status, month, approver, title } = req.query;
   const { id: admin_id } = req.user;
 
-  // Fetch the logged-in user's information to get the firstName
   const user = await User.findById(admin_id);
-  const userFirstName = user.firstName;
 
   let query = {};
 
@@ -294,9 +666,12 @@ const getAllApprovals = asyncWrapper(async (req, res, next) => {
     query.status = { $in: statuses };
   }
 
-  // If an approver is provided in the query, use it. Otherwise, default to the logged-in user's first name.
   if (approver) {
     query.approver = approver;
+  }
+
+  if (title) {
+    query.title = title;
   }
 
   const approvals = await CostApproval.find(query).populate("creator");
@@ -308,9 +683,8 @@ const getAllLiquidityApprovals = asyncWrapper(async (req, res, next) => {
   const { liquidity } = req.query;
   let query = {};
 
-  // Convert the liquidity query parameter to a boolean if it exists
   if (liquidity !== undefined) {
-    query.liquidity = liquidity === "true"; // Convert 'true'/'false' string to boolean
+    query.liquidity = liquidity === "true";
   }
 
   const approvals = await CostApproval.find(query).populate("creator");
