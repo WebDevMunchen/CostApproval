@@ -13,12 +13,13 @@ export default function AdminDashboard() {
     setSelectedMonth,
     setSelectedYear,
     yearlyApprovals,
-    setStatus
+    setStatus,
   } = useContext(AuthContext);
 
   useEffect(() => {
-    setStatus("")
-  }, [])
+    setStatus("");
+    setSelectedYear(new Date().getFullYear());
+  }, []);
 
   const totalApprovedAmount = allApprovals?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
@@ -542,7 +543,7 @@ export default function AdminDashboard() {
                   <div className="mb-4 flex items-center justify-between">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 mb-2">
-                        Monatsübersicht 2024:
+                        Monatsübersicht {selectedYear}:
                       </h3>
                     </div>
                   </div>

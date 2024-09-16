@@ -23,19 +23,17 @@ export default function AuthProvider({ children }) {
   const [selectedMonthAdmin, setSelectedMonthAdmin] = useState("");
   const [selectedYearAdmin, setSelectedYearAdmin] = useState(new Date().getFullYear());
   const [status, setStatus] = useState("");
-  const [approver, setApprover] = useState(""); // Approver state
+  const [statusAccounting, setStatusAccounting] = useState("");
+  const [approver, setApprover] = useState(""); 
   const [titleSearch, setTitleSearch] = useState('');
 
-  // Fetch user data and set approver
   useEffect(() => {
-    // Fetch user profile
     axiosClient
       .get("/user/getProfile")
       .then((response) => {
         const user = response.data;
         setUser(user);
 
-        // Set approver to user's first name
         setApprover(user.firstName);
       })
       .catch(() => {
@@ -46,12 +44,10 @@ export default function AuthProvider({ children }) {
       });
   }, []);
 
-  // Fetch data dependent on approver and other filters
   useEffect(() => {
-    if (!user) return; // Wait until user data is available
+    if (!user) return; 
 
     const fetchApprovals = () => {
-      // Fetch user approvals
       axiosClient
         .get(`/costApproval/getUserApprovals?status=${status}&year=${selectedYear}&title=${titleSearch}`)
         .then((response) => {
@@ -65,7 +61,6 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-      // Fetch all approvals based on selected month and year
       axiosClient
         .get(
           `/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}&status=${status}`
@@ -80,7 +75,6 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-      // Fetch all admin approvals with optional approver filter
       axiosClient
         .get(
           `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}${
@@ -89,7 +83,6 @@ export default function AuthProvider({ children }) {
         )
         .then((response) => {
           setAllApprovalsAdmin(response.data);
-          console.log("Approvals fetched with approver filter:", response.data);
         })
         .catch(() => {
           setAllApprovalsAdmin(null);
@@ -113,9 +106,11 @@ export default function AuthProvider({ children }) {
 
       // Fetch liquidity approvals
       axiosClient
-        .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}`)
+        .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}`)
         .then((response) => {
           setAllLiqudityApprovals(response.data);
+          console.log(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}`)
+          console.log(response.data)
         })
         .catch(() => {
           setAllLiqudityApprovals(null);
@@ -140,7 +135,7 @@ export default function AuthProvider({ children }) {
 
     // Trigger data fetching when approver is set
     fetchApprovals();
-  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status, titleSearch]); // Dependency array includes `approver`
+  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status, titleSearch, statusAccounting]); // Dependency array includes `approver`
 
   const login = async (data) => {
     axiosClient
@@ -158,7 +153,7 @@ export default function AuthProvider({ children }) {
       .then((response) => {
         setAllApprovals(response.data);
 
-        return axiosClient(`/budget/getAllBudgets`);
+        return axiosClient(`/budget/getAllBudgets?year=${selectedYear}`);
       })
       .then((response) => {
         setAllBudgets(response.data);
@@ -213,7 +208,9 @@ export default function AuthProvider({ children }) {
         approver,
         setApprover,
         setTitleSearch,
-        titleSearch // Add setter for approver
+        titleSearch,
+        statusAccounting,
+        setStatusAccounting
       }}
     >
       {children}

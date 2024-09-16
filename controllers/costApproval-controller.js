@@ -23,7 +23,7 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
 
   if (expenseAmount >= 1500) {
     liquidity = true;
-    liquidityStatus = "In Prüfung";
+    liquidityStatus = "Neu";
   }
 
   const newExpense = await CostApproval.create({
@@ -225,7 +225,7 @@ const editApproval = asyncWrapper(async (req, res, next) => {
 
   if (expenseAmount >= 1500) {
     liquidity = true;
-    liquidityStatus = "In Prüfung";
+    liquidityStatus = "Neu";
   } else {
     liquidity = false;
     liquidityStatus = null;
@@ -615,15 +615,15 @@ const getUserApprovals = asyncWrapper(async (req, res, next) => {
   const query = { creator: id };
 
   if (title) {
-    query.title = new RegExp(title, 'i'); 
+    query.title = new RegExp(title, "i");
   }
 
   if (status) {
-    query.status = status
+    query.status = status;
   }
 
   if (year) {
-    query.year = year
+    query.year = year;
   }
 
   const approvals = await CostApproval.find(query)
@@ -631,6 +631,41 @@ const getUserApprovals = asyncWrapper(async (req, res, next) => {
     .sort({ dateOfCreation: -1 });
 
   res.json(approvals);
+});
+
+const updateInquiry = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { updateMessage } = req.body;
+  const { id: user_id } = req.user;
+
+  if (!updateMessage) {
+    return res.status(400).json({ error: "Status and message are required." });
+  }
+
+  const user = await User.findById(user_id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const costApproval = await CostApproval.findById(id);
+  if (!costApproval) {
+    return res.status(404).json({ error: "Cost approval not found." });
+  }
+
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 2);
+
+  costApproval.lastUpdate.push({
+    updateMessage,
+    date: currentTime,
+    sendersFirstName: user.firstName,
+    sendersLastName: user.lastName,
+    sendersAbbreviation: user.sendersAbbreviation,
+  });
+
+  const updatedApproval = await costApproval.save();
+
+  res.status(200).json(updatedApproval);
 });
 
 const getSingleApproval = asyncWrapper(async (req, res, next) => {
@@ -680,11 +715,19 @@ const getAllApprovals = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllLiquidityApprovals = asyncWrapper(async (req, res, next) => {
-  const { liquidity } = req.query;
+  const { liquidity, year, liquidityStatus } = req.query;
   let query = {};
 
   if (liquidity !== undefined) {
     query.liquidity = liquidity === "true";
+  }
+
+  if (year) {
+    query.year = year;
+  }
+
+  if (liquidityStatus) {
+    query.liquidityStatus = liquidityStatus;
   }
 
   const approvals = await CostApproval.find(query).populate("creator");
@@ -802,9 +845,9 @@ const setPending = asyncWrapper(async (req, res, next) => {
   res.status(200).json(updatedApproval);
 });
 
-const approveLiqudity = asyncWrapper(async (req, res, next) => {
+const postponeInquiry = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
-  const { status, message } = req.body;
+  const { status, message, postponeReason } = req.body;
   const { id: admin_id } = req.user;
 
   if (!status || !message) {
@@ -828,22 +871,25 @@ const approveLiqudity = asyncWrapper(async (req, res, next) => {
   costApproval.lastUpdate.push({
     message,
     date: currentTime,
+    postponeReason,
     sendersFirstName: user.firstName,
     sendersLastName: user.lastName,
-    sendersAbbreviation: user.sendersAbbreviation,
+    sendersAbbreviation: user.abbreviation,
   });
+
+  console.log(postponeReason);
 
   const updatedApproval = await costApproval.save();
 
   res.status(200).json(updatedApproval);
 });
 
-const declineLiquidity = asyncWrapper(async (req, res, next) => {
+const approveLiqudity = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
-  const { status, message, liquidityDeclineReason } = req.body;
+  const { liquidityStatus, message } = req.body;
   const { id: admin_id } = req.user;
 
-  if (!status || !message) {
+  if (!liquidityStatus || !message) {
     return res.status(400).json({ error: "Status and message are required." });
   }
 
@@ -860,6 +906,43 @@ const declineLiquidity = asyncWrapper(async (req, res, next) => {
   const currentTime = new Date();
   currentTime.setHours(currentTime.getHours() + 2);
 
+  costApproval.liquidityStatus = liquidityStatus;
+  costApproval.lastUpdate.push({
+    message,
+    date: currentTime,
+    sendersFirstName: user.firstName,
+    sendersLastName: user.lastName,
+    sendersAbbreviation: user.sendersAbbreviation,
+  });
+
+  const updatedApproval = await costApproval.save();
+
+  res.status(200).json(updatedApproval);
+});
+
+const declineLiquidity = asyncWrapper(async (req, res, next) => {
+  const { id } = req.params;
+  const { liquidityStatus, message, liquidityDeclineReason, status } = req.body;
+  const { id: admin_id } = req.user;
+
+  if (!liquidityStatus || !message) {
+    return res.status(400).json({ error: "Status and message are required." });
+  }
+
+  const user = await User.findById(admin_id);
+  if (!user) {
+    return res.status(404).json({ error: "User not found." });
+  }
+
+  const costApproval = await CostApproval.findById(id);
+  if (!costApproval) {
+    return res.status(404).json({ error: "Cost approval not found." });
+  }
+
+  const currentTime = new Date();
+  currentTime.setHours(currentTime.getHours() + 2);
+
+  costApproval.liquidityStatus = liquidityStatus;
   costApproval.status = status;
   costApproval.lastUpdate.push({
     message,
@@ -877,10 +960,10 @@ const declineLiquidity = asyncWrapper(async (req, res, next) => {
 
 const setLiquidityPending = asyncWrapper(async (req, res, next) => {
   const { id } = req.params;
-  const { status, message, liquidityPendingReason } = req.body;
+  const { liquidityStatus, message, liquidityPendingReason } = req.body;
   const { id: admin_id } = req.user;
 
-  if (!status || !message) {
+  if (!liquidityStatus || !message) {
     return res.status(400).json({ error: "Status and message are required." });
   }
 
@@ -897,7 +980,7 @@ const setLiquidityPending = asyncWrapper(async (req, res, next) => {
   const currentTime = new Date();
   currentTime.setHours(currentTime.getHours() + 2);
 
-  costApproval.status = status;
+  costApproval.liquidityStatus = liquidityStatus;
   costApproval.lastUpdate.push({
     message,
     date: currentTime,
@@ -926,4 +1009,6 @@ module.exports = {
   getAllLiquidityApprovals,
   setPending,
   setLiquidityPending,
+  postponeInquiry,
+  updateInquiry
 };

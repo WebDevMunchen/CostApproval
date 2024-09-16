@@ -1,10 +1,17 @@
 import { useContext, useRef, useState } from "react";
 import axiosClient from "../../utils/axiosClient";
 import { AuthContext } from "../../context/AuthProvider";
+import { Bounce, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function LiquidityInquiriesCard({ approval }) {
-  const { setAllApprovalsAdmin, selectedYearAdmin, status, user } =
-    useContext(AuthContext);
+  const {
+    setAllLiqudityApprovals,
+    selectedYearAdmin,
+    liquidity,
+    user,
+    statusAccounting,
+  } = useContext(AuthContext);
 
   const modalRef = useRef(null);
   const modalRefDecline = useRef(null);
@@ -52,11 +59,19 @@ export default function LiquidityInquiriesCard({ approval }) {
   const approveLiqudity = () => {
     axiosClient
       .put(`/costApproval/approveLiquidity/${approval._id}`, {
-        status: "Genehmigt",
+        liquidityStatus: "Genehmigt",
         message: "Deine Liquidität wurde genehmigt",
       })
       .then((response) => {
-        console.log("Success:", response.data);
+        return axiosClient.get(
+          `/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}`
+        );
+      })
+      .then((response) => {
+        setAllLiqudityApprovals(response.data);
+        console.log(response.data);
+
+        notifySuccess();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -64,14 +79,27 @@ export default function LiquidityInquiriesCard({ approval }) {
   };
 
   const declineLiqudity = () => {
+    if (!liquidityDeclineReason.trim()) {
+      alert("Begründung ist ein Pflichtfeld!");
+      return;
+    }
     axiosClient
       .put(`/costApproval/declineLiquidity/${approval._id}`, {
+        liquidityStatus: "Abgelehnt",
         status: "Abgelehnt",
-        message: "Deine Liquidität wurde abgelehnt",
+        message:
+          "Deine Liquidität wurde abgelehnt, daher wird deine Anfrage ebenfalls abgelehnt",
         liquidityDeclineReason,
       })
       .then((response) => {
-        console.log("Success:", response.data);
+        return axiosClient.get(
+          `/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}`
+        );
+      })
+      .then((response) => {
+        setAllLiqudityApprovals(response.data);
+        console.log(response.data);
+        notifySuccess();
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -79,19 +107,44 @@ export default function LiquidityInquiriesCard({ approval }) {
   };
 
   const setLiquidityPending = () => {
+    if (!liquidityPendingReason.trim()) {
+      alert("Zusätzliche Informationen ist ein Pflichtfeld!");
+      return;
+    }
     axiosClient
       .put(`/costApproval/setLiquidityPending/${approval._id}`, {
-        status: "Abgelehnt",
-        message: "Deine Liquidität wurde abgelehnt",
+        liquidityStatus: "In Prüfung",
+        message: `Deine Liquidität wurde in „In Prüfung“ geändert"`,
         liquidityPendingReason,
       })
       .then((response) => {
-        console.log("Success:", response.data);
+        return axiosClient.get(
+          `/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}`
+        );
+      })
+      .then((response) => {
+        setAllLiqudityApprovals(response.data);
+        console.log(response.data);
+        notifySuccess();
       })
       .catch((error) => {
         console.error("Error:", error);
       });
   };
+
+  const notifySuccess = () =>
+    toast.success("Liquidität wurde aktualisiert!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+      className: "mt-14 mr-12",
+    });
 
   const formatExpenseAmount = (amount, cents) => {
     const amountStr = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
@@ -103,7 +156,7 @@ export default function LiquidityInquiriesCard({ approval }) {
   return (
     <div>
       <div className="shadow rounded-lg collapse collapse-arrow bg-white">
-        <input type="radio" name="my-accordion-2" />
+        <input type="checkbox" className="peer" />
         <div className="collapse-title text-xl font-medium">
           <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
             <tbody className="bg-white divide-y divide-gray-200">
@@ -193,11 +246,19 @@ export default function LiquidityInquiriesCard({ approval }) {
                           className={`mt-2 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
                             approval.liquidity === false
                               ? "bg-lime-100 text-lime-800"
-                              : approval.liquidityStatus === "Genehmigt"
+                              : approval.liquidity === true &&
+                                approval.liquidityStatus === "Neu"
+                              ? "bg-blue-100 text-blue-800"
+                              : approval.liquidity === true &&
+                                approval.liquidityStatus === "Genehmigt"
                               ? "bg-green-100 text-green-800"
-                              : approval.liquidityStatus === "Abgelehnt"
+                              : approval.liquidity === true &&
+                                approval.liquidityStatus === "Abgelehnt"
                               ? "bg-red-100 text-red-800"
-                              : "bg-orange-100 text-orange-800"
+                              : approval.liquidity === true &&
+                                approval.liquidityStatus === "In Prüfung"
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-purple-100 text-purple-800"
                           }`}
                         >
                           {approval.liquidity === false
@@ -212,7 +273,7 @@ export default function LiquidityInquiriesCard({ approval }) {
             </tbody>
           </table>
         </div>
-        <div className="collapse-content">
+        <div className="collapse-content peer-checked:block">
           <hr />
 
           <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
@@ -775,25 +836,55 @@ export default function LiquidityInquiriesCard({ approval }) {
                       {approval.additionalMessage}
                     </div>
                   </div>
-                  {approval.lastUpdate.map((update) => {
+                  {approval.lastUpdate.map((update, index) => {
+                    const isCreator =
+                      update.sendersFirstName === approval.creator.firstName &&
+                      update.sendersLastName === approval.creator.lastName;
+
                     return (
-                      <div className="chat chat-end">
+                      <div
+                        key={index}
+                        className={`chat ${
+                          isCreator ? "chat-start" : "chat-end"
+                        }`}
+                      >
                         <div className="chat-image avatar">
                           <div className="flex items-center w-14 bg-blue-100 rounded-full">
                             <span className="mt-3 flex justify-center text-blue-500 text-lg font-semibold">
-                              {update.sendersAbbreviation}
+                              {isCreator
+                                ? approval.creator.abbreviation
+                                : update.sendersAbbreviation}
                             </span>
                           </div>
                         </div>
                         <div className="chat-header">
-                          {update.sendersFirstName +
-                            " " +
-                            update.sendersLastName}
+                          {isCreator
+                            ? approval.creator.firstName +
+                              " " +
+                              approval.creator.lastName
+                            : update.sendersFirstName +
+                              " " +
+                              update.sendersLastName}
                           <span className="opacity-50">
                             {": " + formatDateTime(update.date)}
                           </span>
                         </div>
-                        <div className="mt-1 chat-bubble">{update.message}</div>
+                        <div className="mt-1 chat-bubble">
+                          {update.message}
+                          {!update.updateMessage
+                            ? null
+                            : `${update.updateMessage}`}
+                          <br />
+                          {!update.declineReason
+                            ? null
+                            : `Begründung: ${update.declineReason}`}
+                          {!update.pendingReason
+                            ? null
+                            : `Begründung: ${update.pendingReason}`}
+                          {!update.postponeReason
+                            ? null
+                            : `Begründung: ${update.postponeReason}`}
+                        </div>
                       </div>
                     );
                   })}

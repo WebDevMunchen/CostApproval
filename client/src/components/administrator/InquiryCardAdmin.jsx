@@ -11,9 +11,11 @@ export default function InquiryCardAdmin({ approval }) {
   const modalRef = useRef(null);
   const modalRefDecline = useRef(null);
   const modalRefPending = useRef(null);
+  const modalRefPostponed = useRef(null);
 
   const [declineReason, setDeclineReason] = useState("");
   const [pendingReason, setPendingReason] = useState("");
+  const [postponeReason, setPostponeReason] = useState("");
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "short", day: "numeric" };
@@ -46,6 +48,12 @@ export default function InquiryCardAdmin({ approval }) {
   };
 
   const closeModalPending = () => {
+    if (modalRefPending.current) {
+      modalRefPending.current.close();
+    }
+  };
+
+  const closeModalPostpone = () => {
     if (modalRefPending.current) {
       modalRefPending.current.close();
     }
@@ -126,6 +134,34 @@ export default function InquiryCardAdmin({ approval }) {
       });
   };
 
+  const setPostponed = () => {
+    if (!postponeReason.trim()) {
+      alert("Begründung ist ein Pflichtfeld!");
+      return;
+    }
+    axiosClient
+      .put(`/costApproval/postponeInquiry/${approval._id}`, {
+        status: "Ja zum späteren Zeitpunkt",
+        message: "Deine Anfrage wurde in „Ja zum späteren Zeitpunkt“ geändert",
+        postponeReason: postponeReason,
+      })
+      .then((response) => {
+        console.log(postponeReason);
+        return axiosClient.get(
+          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}${
+            approver ? `&approver=${approver}` : ""
+          }`
+        );
+      })
+      .then((response) => {
+        setAllApprovalsAdmin(response.data);
+        notifySuccess();
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
   const formatExpenseAmount = (amount, cents) => {
     const amountStr = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
     const centsStr = cents.toString().padStart(2, "0");
@@ -150,7 +186,7 @@ export default function InquiryCardAdmin({ approval }) {
   return (
     <div>
       <div className="shadow rounded-lg collapse collapse-arrow bg-white">
-        <input type="radio" name="my-accordion-2" />
+        <input type="checkbox" className="peer" />
         <div className="collapse-title text-xl font-medium">
           <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
             <tbody className="bg-white divide-y divide-gray-200">
@@ -259,7 +295,7 @@ export default function InquiryCardAdmin({ approval }) {
             </tbody>
           </table>
         </div>
-        <div className="collapse-content">
+        <div className="collapse-content peer-checked:block">
           <hr />
 
           <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
@@ -280,8 +316,7 @@ export default function InquiryCardAdmin({ approval }) {
                   </div>
                 </td>
                 <td className="flex-1 px-6 py-4 whitespace-nowrap">
-
-                <div className="flex items-center">
+                  <div className="flex items-center">
                     <div className="ml-4">
                       <div className="text-sm underline font-medium text-gray-500">
                         Wer soll die Kosten genehmigen:
@@ -623,7 +658,154 @@ export default function InquiryCardAdmin({ approval }) {
                           </div>
                         </div>
                       </dialog>
+                      <button
+                        className={
+                          approval.status === "Ja zum späteren Zeitpunkt"
+                            ? "hidden"
+                            : "visible"
+                        }
+                        onClick={() => modalRefPostponed.current.showModal()}
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          height={28}
+                          viewBox="0 0 448 512"
+                          className="overflow-visible text-purple-600 transition-transform transform hover:scale-125 hover:text-purple-800"
+                          fill="currentColor"
+                        >
+                          <path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9L0 168c0 13.3 10.7 24 24 24l110.1 0c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24l0 104c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65 0-94.1c0-13.3-10.7-24-24-24z" />
+                        </svg>
+                      </button>
 
+                      <dialog
+                        ref={modalRefPostponed}
+                        className="modal modal-bottom sm:modal-middle"
+                      >
+                        <div
+                          className="modal-box"
+                          style={{ width: "60%", maxWidth: "80vh" }}
+                        >
+                          <div
+                            role="alert"
+                            className="flex items-center p-3 mb-4 text-sm text-yellow-800 border border-yellow-500 rounded-lg bg-yellow-200 dark:bg-gray-800 dark:text-yellow-300 dark:border-yellow-800"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-6 w-6 shrink-0 stroke-current mr-2"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth="2"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                              />
+                            </svg>
+                            <span>
+                              Du bist dabei, die folgende Anfrage von{" "}
+                              <span className="font-extrabold font-style: italic">
+                                {approval.creator.firstName +
+                                  " " +
+                                  approval.creator.lastName}{" "}
+                              </span>
+                              auf „Ja zum späteren Zeitpunkt“ zu setzen:
+                            </span>
+                          </div>
+
+                          <div
+                            className="flex p-3 my-1 text-sm text-yellow-800 rounded-lg bg-yellow-100 dark:bg-gray-800 dark:text-blue-400"
+                            role="alert"
+                          >
+                            <div className="flex items-center w-full">
+                              <div className="ml-4">
+                                <div className="text-md underline text-gray-500">
+                                  Art der Kosten:
+                                </div>
+
+                                <div className="text-lg font-medium text-gray-900">
+                                  {approval.typeOfExpense}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center w-full">
+                              <div className="ml-4">
+                                <div className="text-md underline text-gray-500">
+                                  Artbeschreibung:
+                                </div>
+
+                                <div className="text-lg font-medium text-gray-900">
+                                  {approval.title}
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center w-full">
+                              <div className="ml-4">
+                                <div className="text-md underline text-gray-500">
+                                  Welche Kosten entstehen:
+                                </div>
+                                <div className="text-lg font-medium text-gray-900">
+                                  {formatExpenseAmount(
+                                    approval.expenseAmount,
+                                    approval.expenseAmountCent
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div
+                            className="flex p-3 text-sm text-yellow-800 rounded-lg bg-yellow-100 dark:bg-gray-800 dark:text-blue-400"
+                            role="alert"
+                          >
+                            <div className="flex items-center">
+                              <div className="ml-4">
+                                <div className="text-sm underline text-gray-500">
+                                  Was wird benötigt?
+                                </div>
+
+                                <div className="text-lg font-medium text-gray-900">
+                                  {approval.additionalMessage}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="mt-4">
+                            <label className="block text-gray-700">
+                              Begründung:
+                            </label>
+                            <textarea
+                              className="textarea textarea-bordered w-full mt-2"
+                              value={postponeReason}
+                              onChange={(e) =>
+                                setPostponeReason(e.target.value)
+                              }
+                              placeholder="Gib die Begründung ein..."
+                              required
+                            />
+                          </div>
+
+                          <div className="modal-action">
+                            <form method="dialog">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={setPostponed}
+                                  className="btn bg-purple-400 hover:bg-purple-600"
+                                >
+                                  Bestätigen
+                                </button>
+
+                                <button
+                                  onClick={closeModalPostpone}
+                                  className="btn"
+                                >
+                                  Abbrechen
+                                </button>
+                              </div>
+                            </form>
+                          </div>
+                        </div>
+                      </dialog>
                       <button
                         className={
                           approval.status === "Abgelehnt" ? "hidden" : "visible"
@@ -879,33 +1061,54 @@ export default function InquiryCardAdmin({ approval }) {
                       {approval.additionalMessage}
                     </div>
                   </div>
-                  {approval.lastUpdate.map((update) => {
+                  {approval.lastUpdate.map((update, index) => {
+                    const isCreator =
+                      update.sendersFirstName === approval.creator.firstName &&
+                      update.sendersLastName === approval.creator.lastName;
+
                     return (
-                      <div className="chat chat-end">
+                      <div
+                        key={index}
+                        className={`chat ${
+                          isCreator ? "chat-start" : "chat-end"
+                        }`}
+                      >
                         <div className="chat-image avatar">
                           <div className="flex items-center w-14 bg-blue-100 rounded-full">
                             <span className="mt-3 flex justify-center text-blue-500 text-lg font-semibold">
-                              {update.sendersAbbreviation}
+                              {isCreator
+                                ? approval.creator.abbreviation
+                                : update.sendersAbbreviation}
                             </span>
                           </div>
                         </div>
                         <div className="chat-header">
-                          {update.sendersFirstName +
-                            " " +
-                            update.sendersLastName}
+                          {isCreator
+                            ? approval.creator.firstName +
+                              " " +
+                              approval.creator.lastName
+                            : update.sendersFirstName +
+                              " " +
+                              update.sendersLastName}
                           <span className="opacity-50">
                             {": " + formatDateTime(update.date)}
                           </span>
                         </div>
                         <div className="mt-1 chat-bubble">
                           {update.message}
+                          {!update.updateMessage
+                            ? null
+                            : `${update.updateMessage}`}
                           <br />
                           {!update.declineReason
                             ? null
-                            : `Begrundung: ${update.declineReason}`}
+                            : `Begründung: ${update.declineReason}`}
                           {!update.pendingReason
                             ? null
-                            : `Begrundung: ${update.pendingReason}`}
+                            : `Begründung: ${update.pendingReason}`}
+                          {!update.postponeReason
+                            ? null
+                            : `Begründung: ${update.postponeReason}`}
                         </div>
                       </div>
                     );

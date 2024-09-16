@@ -9,19 +9,20 @@ export default function Inquiries() {
     selectedYearAdmin,
     setSelectedYearAdmin,
     setStatus,
-    setApprover, // Assuming setApprover is provided by AuthContext
+    setApprover, 
     user,
   } = useContext(AuthContext);
 
   const [selectedStatuses, setSelectedStatuses] = useState([]);
-  const [assignedToMe, setAssignedToMe] = useState(true); // Default to true
+  const [assignedToMe, setAssignedToMe] = useState(true); 
 
   useEffect(() => {
     setStatus(selectedStatuses.join(","));
-    if (assignedToMe) {
-      setApprover(user.firstName); // Set approver to user's first name
+    console.log(user.role)
+    if (assignedToMe && user.role !== "accounting") {
+      setApprover(user.firstName); 
     } else {
-      setApprover(""); // Clear approver when checkbox is unchecked
+      setApprover(""); 
     }
   }, [selectedStatuses, assignedToMe, setStatus, setApprover, user.firstName]);
 
@@ -110,11 +111,11 @@ export default function Inquiries() {
                 />
                 <span className="ml-2">Abgelehnt</span>
               </label>
-              <label className="flex items-center">
+              <label className={user.role !== "accounting" ? "flex items-center" : "hidden"}>
                 <input
                   type="checkbox"
                   className="checkbox checkbox-primary"
-                  checked={assignedToMe} // Default to checked
+                  checked={assignedToMe && user.role !== "accounting"} 
                   onChange={handleAssignedToMeChange}
                 />
                 <span className="ml-2">Mir zugewiesen</span>

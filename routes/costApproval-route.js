@@ -12,6 +12,9 @@ const {
   approveLiqudity,
   getAllLiquidityApprovals,
   setPending,
+  postponeInquiry,
+  setLiquidityPending,
+  updateInquiry,
 } = require("../controllers/costApproval-controller");
 const { authenticate } = require("../middlewares/authenticate");
 
@@ -37,6 +40,8 @@ costApprovalRoute
   .put(authenticate, editApproval)
   .delete(authenticate, deleteApproval);
 
+costApprovalRoute.route("/updateInquiry/:id").put(authenticate, updateInquiry);
+
 costApprovalRoute
   .route("/approveInquiry/:id")
   .put(authenticate, approveInquiry);
@@ -48,6 +53,10 @@ costApprovalRoute
 costApprovalRoute.route("/setPending/:id").put(authenticate, setPending);
 
 costApprovalRoute
+  .route("/postponeInquiry/:id")
+  .put(authenticate, postponeInquiry);
+
+costApprovalRoute
   .route("/declineLiquidity/:id")
   .put(authenticate, declineLiquidity);
 
@@ -55,8 +64,8 @@ costApprovalRoute
   .route("/approveLiquidity/:id")
   .put(authenticate, approveLiqudity);
 
-  costApprovalRoute
+costApprovalRoute
   .route("/setLiquidityPending/:id")
-  .put(authenticate, approveLiqudity);
+  .put(authenticate, setLiquidityPending);
 
 module.exports = costApprovalRoute;

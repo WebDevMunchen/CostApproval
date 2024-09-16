@@ -53,7 +53,7 @@ export default function Budget() {
       });
   };
 
-  // Array of months in German
+ 
   const months = [
     "Januar",
     "Februar",

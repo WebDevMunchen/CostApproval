@@ -1,6 +1,5 @@
 const { Schema, model } = require("mongoose");
 
-// Helper functions to get the current year and month in German
 const getCurrentYear = () => new Date().getFullYear();
 
 const getCurrentMonth = () => {
@@ -20,7 +19,9 @@ const updateSchema = new Schema({
   liquidityDeclineReason: {type: String},
   liquidityPendingReason: {type: String},
   declineReason: {type: String},
-  pendingReason: {type: String}
+  pendingReason: {type: String},
+  postponeReason: {type: String},
+  updateMessage: {type: String}
 });
 
 const costApprovalSchema = new Schema({
@@ -35,7 +36,7 @@ const costApprovalSchema = new Schema({
   expenseAmount: { type: Number, required: true },
   expenseAmountCent: { type: Number, required: true, default: 0 },
   liquidity: { type: Boolean, default: false },
-  liquidityStatus: { type: String, enum: ["In Prüfung", "Genehmigt", "Abgelehnt"] },
+  liquidityStatus: { type: String, enum: ["Neu", "In Prüfung", "Genehmigt", "Abgelehnt"] },
   approver: { type: String, enum: ["Ben", "Tobias", "Sandra", "Marion"], required: true },
   fileURL: { type: String },
   dateOfCreation: { type: Date, default: Date.now },
@@ -55,7 +56,6 @@ const costApprovalSchema = new Schema({
   },
   reason: { type: String },
 
-  // New fields for year and month (in German)
   year: { type: Number, default: getCurrentYear },
   month: { type: String, default: getCurrentMonth },
 });
