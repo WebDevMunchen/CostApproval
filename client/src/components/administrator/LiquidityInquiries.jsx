@@ -9,7 +9,6 @@ export default function LiquidityInquiries() {
     selectedYearAdmin,
     setSelectedYearAdmin,
     setStatusAccounting,
-    statusAccounting
   } = useContext(AuthContext);
 
   const [selectedStatuses, setSelectedStatuses] = useState([]);

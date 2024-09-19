@@ -60,7 +60,6 @@ export default function InquiryCard({ approval }) {
       })
       .then((response) => {
         setUserApprovals(response.data);
-        console.log("updated");
         notifyMessageSent();
       })
       .catch((error) => {
@@ -299,7 +298,7 @@ export default function InquiryCard({ approval }) {
                 </td>
                 <td className="flex-1 px-6 mt-3 py-4 whitespace-nowrap  text-sm font-medium">
                   {approval.status === "Neu" &&
-                  (approval.liquidityStatus === "In Prüfung" ||
+                  (approval.liquidityStatus === "Neu" ||
                     approval.liquidity === false) ? (
                     <div className="flex justify-center gap-4">
                       <NavLink to={`/anfrageBearbeiten/${approval._id}`}>
@@ -448,7 +447,7 @@ export default function InquiryCard({ approval }) {
                         </div>
                       </dialog>
                     </div>
-                  ) : approval.status === "In Prüfung" ? (
+                  ) : approval.status === "In Prüfung" || approval.liquidityStatus === "In Prüfung" ? (
                     <div className="flex justify-center">
                       <button
                         onClick={() => modalRefUpdate.current.showModal()}

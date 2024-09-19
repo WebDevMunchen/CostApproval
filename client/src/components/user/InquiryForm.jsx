@@ -4,6 +4,8 @@ import Sidebar from "../shared/Sidebar";
 import { useForm } from "react-hook-form";
 import { useContext, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
+import { Bounce, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function InquiryForm() {
   const { setUserApprovals } = useContext(AuthContext);
@@ -26,12 +28,27 @@ export default function InquiryForm() {
       })
       .then((response) => {
         setUserApprovals(response.data);
+        notifySuccess()
         navigate("/meineAnfragen");
       })
       .catch((error) => {
         console.log(error);
       });
   };
+
+  const notifySuccess = () =>
+    toast.success("Ubermittelt!", {
+      position: "top-right",
+      autoClose: 3000,
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: false,
+      progress: undefined,
+      theme: "light",
+      transition: Bounce,
+      className: "mt-14 mr-6",
+    });
 
   return (
     <div>

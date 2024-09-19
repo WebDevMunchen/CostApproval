@@ -96,6 +96,15 @@ export default function Inquiries() {
               <label className="flex items-center">
                 <input
                   type="checkbox"
+                  className="checkbox checkbox-accent"
+                  checked={selectedStatuses.includes("Ja zum späteren Zeitpunkt")}
+                  onChange={() => handleStatusChange("Ja zum späteren Zeitpunkt")}
+                />
+                <span className="ml-2">Zum späteren Zeitpunkt</span>
+              </label>
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
                   className="checkbox checkbox-warning"
                   checked={selectedStatuses.includes("In Prüfung")}
                   onChange={() => handleStatusChange("In Prüfung")}

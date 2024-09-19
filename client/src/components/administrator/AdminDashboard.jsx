@@ -14,11 +14,17 @@ export default function AdminDashboard() {
     setSelectedYear,
     yearlyApprovals,
     setStatus,
+    setTitleSearch,
+    setTitleSearchAdmin,
+    setTitleSearchLiquidity
   } = useContext(AuthContext);
 
   useEffect(() => {
     setStatus("");
     setSelectedYear(new Date().getFullYear());
+    setTitleSearch("")
+    setTitleSearchAdmin("")
+    setTitleSearchLiquidity("")
   }, []);
 
   const totalApprovedAmount = allApprovals?.reduce(

@@ -80,7 +80,7 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
       </thead>
       <tbody>
         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Creator</td>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Ersteller</td>
           <td style="border: 1px solid #ddd; padding: 8px;">${
             creator.firstName
           } ${creator.lastName}</td>
@@ -258,8 +258,8 @@ const editApproval = asyncWrapper(async (req, res, next) => {
     address = "webdevmuenchen@gmail.com";
   }
 
-  const additionalAddress = approval.liquidity
-    ? "denis.hadzipasic@partyrent.com"
+  const additionalAddress = approval.liquidity || oldApproval.liquidity
+    ? "webdevmunchen@gmail.com"
     : "";
 
   const transporter = nodemailer.createTransport({
@@ -376,7 +376,11 @@ const editApproval = asyncWrapper(async (req, res, next) => {
       </thead>
       <tbody>
         <tr>
-          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${
+          <td style="border: 1px solid #ddd; padding: 8px; ${
+            oldApproval.additionalMessage !== approval.additionalMessage
+              ? "text-decoration: line-through;"
+              : ""
+          }" colspan="2">${
             oldApproval.additionalMessage
           }</td>
         </tr>
@@ -506,7 +510,7 @@ const deleteApproval = asyncWrapper(async (req, res, next) => {
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
     <p>${creator.firstName} ${
     creator.lastName
-  } hat folgende Anfrage zur Kostenfreigabe gelöscht:</p>
+  } hat folgende Anfrage zur Kostenfreigabe storniert:</p>
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
       <tbody>
         <tr>
@@ -663,6 +667,77 @@ const updateInquiry = asyncWrapper(async (req, res, next) => {
     sendersAbbreviation: user.sendersAbbreviation,
   });
 
+  let address = "";
+
+  if (costApproval.approver === "Ben") {
+    address = "denis.hadzipasic@partyrent.com";
+  } else if (costApproval.approver === "Tobias") {
+    address = "denis.hadzipasic@partyrent.com";
+  } else {
+    address = "webdevmuenchen@gmail.com";
+  }
+
+  const additionalAddress = costApproval.liquidity
+    ? "webdevmuenchen@gmail.com"
+    : "";
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+
+  const commonHtmlContent = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <p>${user.firstName} ${user.lastName} hat zu seiner Anfrage eine Ergänzung hinzugefügt</>
+    <a herf=# >Link</a>
+  </div>`;
+
+  const primaryMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: address,
+    subject: "Kostenfreigabetool - Rent.Group München ",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  const additionalMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: additionalAddress,
+    subject: "Kostenfreigabetool - Rent.Group München",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  transporter.sendMail(primaryMailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending primary email:", error);
+    } else {
+      console.log("Primary email sent:", info.response);
+    }
+  });
+
+  if (additionalAddress) {
+    transporter.sendMail(additionalMailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending additional email:", error);
+      } else {
+        console.log("Additional email sent:", info.response);
+      }
+    });
+  }
+
   const updatedApproval = await costApproval.save();
 
   res.status(200).json(updatedApproval);
@@ -706,7 +781,7 @@ const getAllApprovals = asyncWrapper(async (req, res, next) => {
   }
 
   if (title) {
-    query.title = title;
+    query.title = new RegExp(title, "i");
   }
 
   const approvals = await CostApproval.find(query).populate("creator");
@@ -715,7 +790,7 @@ const getAllApprovals = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllLiquidityApprovals = asyncWrapper(async (req, res, next) => {
-  const { liquidity, year, liquidityStatus } = req.query;
+  const { liquidity, year, liquidityStatus, title } = req.query;
   let query = {};
 
   if (liquidity !== undefined) {
@@ -728,6 +803,10 @@ const getAllLiquidityApprovals = asyncWrapper(async (req, res, next) => {
 
   if (liquidityStatus) {
     query.liquidityStatus = liquidityStatus;
+  }
+
+  if (title) {
+    query.title = new RegExp(title, "i");
   }
 
   const approvals = await CostApproval.find(query).populate("creator");

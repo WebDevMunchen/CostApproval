@@ -26,6 +26,8 @@ export default function AuthProvider({ children }) {
   const [statusAccounting, setStatusAccounting] = useState("");
   const [approver, setApprover] = useState(""); 
   const [titleSearch, setTitleSearch] = useState('');
+  const [titleSearchAdmin, setTitleSearchAdmin] = useState('');
+  const [titleSearchLiquidity, setTitleSearchLiquidity] = useState('');
 
   useEffect(() => {
     axiosClient
@@ -77,11 +79,15 @@ export default function AuthProvider({ children }) {
 
       axiosClient
         .get(
-          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}${
+          `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}&title=${titleSearchAdmin}${
             approver ? `&approver=${approver}` : ""
           }`
+          
         )
         .then((response) => {
+          console.log(`/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}&title=${titleSearchAdmin}${
+            approver ? `&approver=${approver}` : ""
+          }`)
           setAllApprovalsAdmin(response.data);
         })
         .catch(() => {
@@ -106,11 +112,9 @@ export default function AuthProvider({ children }) {
 
       // Fetch liquidity approvals
       axiosClient
-        .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}`)
+        .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}&title=${titleSearchLiquidity}`)
         .then((response) => {
           setAllLiqudityApprovals(response.data);
-          console.log(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}`)
-          console.log(response.data)
         })
         .catch(() => {
           setAllLiqudityApprovals(null);
@@ -119,7 +123,6 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-      // Fetch all budgets
       axiosClient
         .get(`/budget/getAllBudgets?year=${selectedYear}`)
         .then((response) => {
@@ -133,9 +136,8 @@ export default function AuthProvider({ children }) {
         });
     };
 
-    // Trigger data fetching when approver is set
     fetchApprovals();
-  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status, titleSearch, statusAccounting]); // Dependency array includes `approver`
+  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status, titleSearch, statusAccounting, titleSearchLiquidity, titleSearchAdmin]); // Dependency array includes `approver`
 
   const login = async (data) => {
     axiosClient
@@ -210,7 +212,11 @@ export default function AuthProvider({ children }) {
         setTitleSearch,
         titleSearch,
         statusAccounting,
-        setStatusAccounting
+        setStatusAccounting,
+        titleSearchLiquidity,
+        setTitleSearchLiquidity,
+        setTitleSearchAdmin,
+        titleSearchAdmin
       }}
     >
       {children}

@@ -132,7 +132,7 @@ export default function Sidebar() {
                 </li>
                 <li>
                   <NavLink
-                    to={"/admin/liquidität"}
+                    to={"/admin/liquidity"}
                     className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group"
                   >
                     <svg

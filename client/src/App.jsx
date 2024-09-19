@@ -46,7 +46,7 @@ function App() {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="budgetVerwalten" element={<Budget />} />
             <Route path="kostenanfragen" element={<Inquiries />} />
-            <Route path="liquidität" element={<LiquidityInquiries />} />
+            <Route path="liquidity" element={<LiquidityInquiries />} />
           </Route>
         </Route>
       </Routes>
