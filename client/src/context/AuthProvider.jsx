@@ -21,13 +21,16 @@ export default function AuthProvider({ children }) {
   );
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonthAdmin, setSelectedMonthAdmin] = useState("");
-  const [selectedYearAdmin, setSelectedYearAdmin] = useState(new Date().getFullYear());
+  const [selectedYearAdmin, setSelectedYearAdmin] = useState(
+    new Date().getFullYear()
+  );
   const [status, setStatus] = useState("");
   const [statusAccounting, setStatusAccounting] = useState("");
-  const [approver, setApprover] = useState(""); 
-  const [titleSearch, setTitleSearch] = useState('');
-  const [titleSearchAdmin, setTitleSearchAdmin] = useState('');
-  const [titleSearchLiquidity, setTitleSearchLiquidity] = useState('');
+  const [approver, setApprover] = useState("");
+  const [titleSearch, setTitleSearch] = useState("");
+  const [titleSearchAdmin, setTitleSearchAdmin] = useState("");
+  const [titleSearchLiquidity, setTitleSearchLiquidity] = useState("");
+  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     axiosClient
@@ -47,14 +50,16 @@ export default function AuthProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    if (!user) return; 
+    if (!user) return;
 
     const fetchApprovals = () => {
       axiosClient
-        .get(`/costApproval/getUserApprovals?status=${status}&year=${selectedYear}&title=${titleSearch}`)
+        .get(
+          `/costApproval/getUserApprovals?status=${status}&year=${selectedYear}&title=${titleSearch}`
+        )
         .then((response) => {
           setUserApprovals(response.data);
-          console.log(`/costApproval/getUserApprovals?title=${titleSearch}`)
+          console.log(`/costApproval/getUserApprovals?title=${titleSearch}`);
         })
         .catch(() => {
           setUserApprovals(null);
@@ -82,12 +87,13 @@ export default function AuthProvider({ children }) {
           `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}&title=${titleSearchAdmin}${
             approver ? `&approver=${approver}` : ""
           }`
-          
         )
         .then((response) => {
-          console.log(`/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}&title=${titleSearchAdmin}${
-            approver ? `&approver=${approver}` : ""
-          }`)
+          console.log(
+            `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}&title=${titleSearchAdmin}${
+              approver ? `&approver=${approver}` : ""
+            }`
+          );
           setAllApprovalsAdmin(response.data);
         })
         .catch(() => {
@@ -97,7 +103,6 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-      // Fetch yearly approvals
       axiosClient
         .get(`/costApproval/getAllApprovals?year=${selectedYear}`)
         .then((response) => {
@@ -110,9 +115,10 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-      // Fetch liquidity approvals
       axiosClient
-        .get(`/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}&title=${titleSearchLiquidity}`)
+        .get(
+          `/costApproval/getAllLiquidityApprovals?liquidity=${liquidity}&year=${selectedYearAdmin}&liquidityStatus=${statusAccounting}&title=${titleSearchLiquidity}`
+        )
         .then((response) => {
           setAllLiqudityApprovals(response.data);
         })
@@ -137,20 +143,35 @@ export default function AuthProvider({ children }) {
     };
 
     fetchApprovals();
-  }, [user, approver, selectedMonth, selectedYear, selectedYearAdmin, status, titleSearch, statusAccounting, titleSearchLiquidity, titleSearchAdmin]); // Dependency array includes `approver`
+  }, [
+    user,
+    approver,
+    selectedMonth,
+    selectedYear,
+    selectedYearAdmin,
+    status,
+    titleSearch,
+    statusAccounting,
+    titleSearchLiquidity,
+    titleSearchAdmin,
+  ]);
 
   const login = async (data) => {
+    let role;
+
     axiosClient
       .post("/user/login", data)
       .then((response) => {
         setUser(response.data);
-
+        role = response.data.role;
         return axiosClient.get("/costApproval/getUserApprovals");
       })
       .then((response) => {
         setUserApprovals(response.data);
 
-        return axiosClient(`/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}&status=${status}`);
+        return axiosClient(
+          `/costApproval/getAllApprovals?month=${selectedMonth}&year=${selectedYear}&status=${status}`
+        );
       })
       .then((response) => {
         setAllApprovals(response.data);
@@ -159,14 +180,18 @@ export default function AuthProvider({ children }) {
       })
       .then((response) => {
         setAllBudgets(response.data);
-        navigate("/admin/dashboard");
-        // navigate("/meineAnfragen")
       })
       .catch(() => {
         setUser(null);
       })
       .finally(() => {
         setIsLoading(false);
+        if (role === "admin") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/meineAnfragen");
+        }
+        console.log(role);
       });
   };
 
@@ -216,7 +241,7 @@ export default function AuthProvider({ children }) {
         titleSearchLiquidity,
         setTitleSearchLiquidity,
         setTitleSearchAdmin,
-        titleSearchAdmin
+        titleSearchAdmin,
       }}
     >
       {children}

@@ -117,7 +117,7 @@ export default function InquiryCard({ approval }) {
   return (
     <div>
       <div className="shadow rounded-lg collapse collapse-arrow bg-white">
-        <input type="radio" name="my-accordion-2" />
+        <input type="checkbox" className="peer" />
         <div className="collapse-title text-xl font-medium">
           <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
             <tbody className="bg-white divide-y divide-gray-200">
@@ -226,7 +226,7 @@ export default function InquiryCard({ approval }) {
             </tbody>
           </table>
         </div>
-        <div className="collapse-content">
+        <div className="collapse-content peer-checked:block">
           <hr />
 
           <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">

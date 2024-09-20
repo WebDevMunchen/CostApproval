@@ -8,17 +8,21 @@ export default function Login() {
 
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   if (user && window.location.pathname === "/") {
-  //     if (user?.role !== "user") {
-  //       navigate("/admin/dashboard");
-  //     } else {
-  //       navigate("/meineAnfragen");
-  //     }
-  //   } else {
-  //     return;
-  //   }
-  // }, [user]);
+  useEffect(() => {
+    if(!user) {
+      return
+    } else {
+      if (user.role === "user") {
+        navigate("/meineAnfragen");
+      } else if (user.role === "admin") {
+        navigate("/admin/dashboard");
+      } else {
+        return
+      }
+    }
+    
+  
+  }, [user]);
 
   const {
     register,

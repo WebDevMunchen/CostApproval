@@ -678,7 +678,7 @@ const updateInquiry = asyncWrapper(async (req, res, next) => {
   }
 
   const additionalAddress = costApproval.liquidity
-    ? "webdevmuenchen@gmail.com"
+    ? "webdevmunchen@gmail.com"
     : "";
 
   const transporter = nodemailer.createTransport({
@@ -694,8 +694,30 @@ const updateInquiry = asyncWrapper(async (req, res, next) => {
 
   const commonHtmlContent = `
   <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-    <p>${user.firstName} ${user.lastName} hat zu seiner Anfrage eine Ergänzung hinzugefügt</>
-    <a herf=# >Link</a>
+    <p>${user.firstName} ${user.lastName} hat zu seiner Anfrage eine Ergänzung hinzugefügt</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+      <tr>
+        <td align="center" bgcolor="#1d4ed8" style="
+          padding: 12px 24px;
+          background-color: #1d4ed8;
+        ">
+          <a 
+            href="http://localhost:5173/admin/dashboard" 
+            target="_blank" 
+            style="
+              font-size: 16px;
+              font-weight: bold;
+              color: #ffffff;
+              text-decoration: none;
+              text-transform: uppercase;
+              display: inline-block;
+            "
+          >
+            Zur Kostenfreigabe
+          </a>
+        </td>
+      </tr>
+    </table>
   </div>`;
 
   const primaryMailOptions = {
