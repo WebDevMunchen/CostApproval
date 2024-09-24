@@ -14,6 +14,8 @@ import BudgetIntern from "./components/administrator/BudgetIntern";
 import BudgetKennzahlen from "./components/administrator/BudgetKennzahlen";
 import AdminDashboardKennzahlen from "./components/administrator/AdminDashboardKennzahlen";
 import KennzahlenForm from "./components/userLeadRole/KennzahlenForm";
+import MyKennzahlenEntries from "./components/userLeadRole/MyKennzahlenEntries";
+import LeadRoleDashboard from "./components/userLeadRole/LeadRoleDashboard";
 
 function App() {
   return (
@@ -42,7 +44,11 @@ function App() {
           <Route path="/meineAnfragen" element={<MyInquiries />} />
           <Route path="/anfrageBearbeiten/:id" element={<EditInquiry />} />
           <Route path="/neueAnfrage" element={<InquiryForm />} />
-          <Route path="/Kennzahlen/neuerAntrag" element={<KennzahlenForm />} />
+          <Route path="/kennzahlen/neuerAntrag" element={<KennzahlenForm />} />
+          <Route path="/kennzahlen/meineAntraege" element={<MyKennzahlenEntries />} />
+          <Route path="/kennzahlen/meinBudget" element={<LeadRoleDashboard />} />
+
+          kennzahlen/meinBudget
           <Route
             path="/admin"
             element={<Authorize roles={["admin", "accounting"]} />}

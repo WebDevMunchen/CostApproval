@@ -17,7 +17,6 @@ const createNew = asyncWrapper(async (req, res, next) => {
     additionalMessage,
     expenseAmount,
     expenseAmountCent,
-    approver,
     deadline,
     status,
   } = req.body;
@@ -40,6 +39,16 @@ const createNew = asyncWrapper(async (req, res, next) => {
     );
   }
 
+  let setApprover = "";
+
+  if (leadRole === "Anmietung") {
+    setApprover = "Sandra Bollmann";
+  } else if (leadRole === "Fremdpersonalkosten LL") {
+    setApprover = "Tobias Viße";
+  } else {
+    setApprover = "Ben Cudok";
+  }
+
   const totalUsedAmount = budget.usedAmount + budget.usedAmountCent / 100;
 
   if (totalUsedAmount > budget.amount) {
@@ -54,25 +63,30 @@ const createNew = asyncWrapper(async (req, res, next) => {
     additionalMessage,
     expenseAmount,
     expenseAmountCent,
-    approver,
+    approver: setApprover,
     deadline,
     status,
-    department: leadRole
+    department: leadRole,
   });
 
-  const updatedUsedAmount = budget.usedAmount + expenseAmount;
-  const updatedUsedAmountCent = budget.usedAmountCent + expenseAmountCent;
+  let updatedUsedAmount = Number(budget.usedAmount) + Number(expenseAmount); 
+  let updatedUsedAmountCent = Number(budget.usedAmountCent) + Number(expenseAmountCent); 
 
-  const totalCents = updatedUsedAmountCent % 100;
-  const additionalEuros = Math.floor(updatedUsedAmountCent / 100);
+  if (updatedUsedAmountCent >= 100) {
+    const additionalEuros = Math.floor(updatedUsedAmountCent / 100); 
+    updatedUsedAmount += additionalEuros;
+    updatedUsedAmountCent = updatedUsedAmountCent % 100;
+  }
 
-  budget.usedAmount = updatedUsedAmount + additionalEuros;
-  budget.usedAmountCent = totalCents;
+  budget.usedAmount = updatedUsedAmount;
+  budget.usedAmountCent = updatedUsedAmountCent;
 
   await budget.save();
 
   res.json(newEntry);
 });
+
+
 
 const getAllKennzahlenInquiries = asyncWrapper(async (req, res, next) => {
   const { year, department } = req.query;
@@ -94,7 +108,7 @@ const getAllKennzahlenInquiries = asyncWrapper(async (req, res, next) => {
 
 const getUserKennzahlenInquiries = asyncWrapper(async (req, res, next) => {
   const { id } = req.user;
-  const { title, status, year } = req.query;
+  const { title, status, year, month } = req.query;
 
   const query = { creator: id };
 
@@ -110,6 +124,10 @@ const getUserKennzahlenInquiries = asyncWrapper(async (req, res, next) => {
     query.year = year;
   }
 
+  if (month) {
+    query.month = month;
+  }
+
   const approvals = await CostApprovalKennzahlen.find(query)
     .populate("creator")
     .sort({ dateOfCreation: -1 });
@@ -117,4 +135,8 @@ const getUserKennzahlenInquiries = asyncWrapper(async (req, res, next) => {
   res.json(approvals);
 });
 
-module.exports = { createNew, getAllKennzahlenInquiries, getUserKennzahlenInquiries };
+module.exports = {
+  createNew,
+  getAllKennzahlenInquiries,
+  getUserKennzahlenInquiries,
+};

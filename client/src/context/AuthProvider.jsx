@@ -10,8 +10,11 @@ export default function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [userApprovals, setUserApprovals] = useState(null);
   const [userKennzahlenInquiries, setUserKennzahlenInquiries] = useState(null);
+  const [yearlyUserKennzahlenInquiries, setYearlyUserKennzahlenInquiries] =
+    useState(null);
   const [yearlyApprovals, setYearlyApprovals] = useState(null);
-  const [yearlyKennzahlenApprovals, setYearlyKennzahlenApprovals] = useState(null);
+  const [yearlyKennzahlenApprovals, setYearlyKennzahlenApprovals] =
+    useState(null);
   const [allApprovals, setAllApprovals] = useState(null);
   const [allApprovalsAdmin, setAllApprovalsAdmin] = useState(null);
   const [allLiqudityApprovals, setAllLiqudityApprovals] = useState(null);
@@ -35,6 +38,7 @@ export default function AuthProvider({ children }) {
   const [titleSearch, setTitleSearch] = useState("");
   const [titleSearchAdmin, setTitleSearchAdmin] = useState("");
   const [titleSearchLiquidity, setTitleSearchLiquidity] = useState("");
+  const [titleSearchLeadRole, setTitleSearchLeadRole] = useState("");
 
   useEffect(() => {
     axiosClient
@@ -139,8 +143,10 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-        axiosClient
-        .get(`/budgetKennzahlen/getAllKennzahlenBudgets?year=${selectedYear}&department=${selectedDepartment}`)
+      axiosClient
+        .get(
+          `/budgetKennzahlen/getAllKennzahlenBudgets?year=${selectedYear}&department=${selectedDepartment}`
+        )
         .then((response) => {
           setAllKennzahlenBudgets(response.data);
         })
@@ -151,8 +157,10 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-        axiosClient
-        .get(`/kennzahlen/getAllKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`)
+      axiosClient
+        .get(
+          `/kennzahlen/getAllKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`
+        )
         .then((response) => {
           setAllKennzahlenInquiries(response.data);
         })
@@ -163,11 +171,11 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-        axiosClient
+      axiosClient
         .get(`/kennzahlen/getAllKennzahlenInquiries?year=${selectedYear}`)
         .then((response) => {
           setYearlyKennzahlenApprovals(response.data);
-          console.log(response.data)
+          console.log(response.data);
         })
         .catch(() => {
           setAllKennzahlenInquiries(null);
@@ -176,14 +184,29 @@ export default function AuthProvider({ children }) {
           setIsLoading(false);
         });
 
-        axiosClient
-        .get(`/kennzahlen/getAllUserKennzahlenInquiries`)
+      axiosClient
+        .get(
+          `/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&month=${selectedMonth}&status=${status}&title=${titleSearchLeadRole}`
+        )
         .then((response) => {
           setUserKennzahlenInquiries(response.data);
-          console.log(response.data)
+          console.log(response.data);
         })
         .catch(() => {
           setUserKennzahlenInquiries(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+
+      axiosClient
+        .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}`)
+        .then((response) => {
+          setYearlyUserKennzahlenInquiries(response.data);
+          console.log(response.data);
+        })
+        .catch(() => {
+          setYearlyUserKennzahlenInquiries(null);
         })
         .finally(() => {
           setIsLoading(false);
@@ -202,7 +225,8 @@ export default function AuthProvider({ children }) {
     statusAccounting,
     titleSearchLiquidity,
     titleSearchAdmin,
-    selectedDepartment
+    titleSearchLeadRole,
+    selectedDepartment,
   ]);
 
   const login = async (data) => {
@@ -298,7 +322,10 @@ export default function AuthProvider({ children }) {
         setAllKennzahlenInquiries,
         yearlyKennzahlenApprovals,
         setUserKennzahlenInquiries,
-        userKennzahlenInquiries
+        userKennzahlenInquiries,
+        yearlyUserKennzahlenInquiries,
+        titleSearchLeadRole,
+        setTitleSearchLeadRole,
       }}
     >
       {children}

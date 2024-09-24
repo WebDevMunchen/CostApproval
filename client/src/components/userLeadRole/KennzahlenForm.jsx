@@ -8,7 +8,7 @@ import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function KennzahlenForm() {
-  const { setUserKennzahlenInquiries } = useContext(AuthContext);
+  const { setUserKennzahlenInquiries, user } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -24,12 +24,12 @@ export default function KennzahlenForm() {
     axiosClient
       .post("/kennzahlen/createNewEntry", data)
       .then((response) => {
-        return axiosClient.get("/kennzahlen/getUserKennzahlenInquiries");
+        return axiosClient.get("/kennzahlen/getAllUserKennzahlenInquiries");
       })
       .then((response) => {
         setUserKennzahlenInquiries(response.data);
         notifySuccess()
-        navigate("/meineAnfragen");
+        navigate("/kennzahlen/meineAntraege");
       })
       .catch((error) => {
         console.log(error);
@@ -57,37 +57,18 @@ export default function KennzahlenForm() {
         <div className="pt-12 h-[100vh] w-full bg-gray-50 relative overflow-y-auto lg:ml-64">
           <div className="shadow rounded-lg px-12 py-8 mx-auto w-full max-w-[750px] bg-white">
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-              Neue Anfrage zur Kostenfreigabe:
+              Neuer Kennzahleneintrag:
             </h1>
             <form className="mt-6" onSubmit={handleSubmit(onSubmit)}>
               <div className="-mx-3 flex flex-wrap">
-                <div className="w-full px-3 sm:w-1/2">
-                  <div className="mb-5">
-                    <label
-                      htmlFor="typeOfExpense"
-                      className="mb-3 block text-base font-medium text-[#07074D]"
-                    >
-                      Art der Kosten
-                    </label>
-                    <select
-                      {...register("typeOfExpense", { required: true })}
-                      name="typeOfExpense"
-                      id="typeOfExpense"
-                      className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
-                    >
-                      <option value={"Bereich"}>Bereich</option>
-                      <option value={"Projekt"}>Projekt</option>
-                      <option value={"Kontrakt"}>Kontrakt</option>
-                    </select>
-                  </div>
-                </div>
+
                 <div className="w-full px-3 sm:w-1/2">
                   <div className="mb-5">
                     <label
                       htmlFor="title"
                       className="mb-3 block text-base font-medium text-[#07074D]"
                     >
-                      Artbeschreibung
+                      Art der Kosten
                     </label>
                     <input
                       {...register("title", { required: true })}
@@ -95,7 +76,7 @@ export default function KennzahlenForm() {
                       name="title"
                       id="title"
                       className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
-                      placeholder="Gib eine Artbeschreibung ein"
+                      placeholder="Gib eine Art der Kosten ein"
                     />
                   </div>
                 </div>
@@ -105,7 +86,7 @@ export default function KennzahlenForm() {
                   htmlFor="additionalMessage"
                   className="mb-3 block text-base font-medium text-[#07074D]"
                 >
-                  Was wird benötigt?
+                  Für was wird das Geld ausgegeben?
                 </label>
                 <textarea
                   {...register("additionalMessage", { required: true })}
@@ -117,7 +98,7 @@ export default function KennzahlenForm() {
               </div>
               <div className="-mx-3 flex flex-wrap">
                 <div className="w-full px-3 sm:w-1/2">
-                  <div className="mb-5">
+                  <div className="mb-5 mt-6">
                     <label
                       htmlFor="expenseAmount"
                       className="mb-3 block text-base font-medium text-[#07074D]"
@@ -152,19 +133,13 @@ export default function KennzahlenForm() {
                       htmlFor="time"
                       className="mb-3 block text-base font-medium text-[#07074D]"
                     >
-                      Wer soll die Kosten genehmigen?
+                      Bei einer Budgetüberschreitung werden deine Kosten genehmigt von:
                     </label>
-                    <select
-                      {...register("approver", { required: true })}
-                      name="approver"
-                      id="approver"
+                    <input
+                    disabled
+                      defaultValue={user.leadRole === "Anmietung" ? "Sandra Bollmann" : user.leadRole === "Fremdpersonalkosten LL" ? "Tobias Viße" : "Ben Cudok"}
                       className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
-                      placeholder="Gib eine Artbeschreibung ein"
-                    >
-                      <option value={"Ben"}>Ben</option>
-                      <option value={"Tobias"}>Tobias</option>
-                      <option value={"Sandra"}>Sandra</option>
-                    </select>
+                    />
                   </div>
                 </div>
               </div>
@@ -234,45 +209,6 @@ export default function KennzahlenForm() {
                         d="M9 12.75 11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 0 1-1.043 3.296 3.745 3.745 0 0 1-3.296 1.043A3.745 3.745 0 0 1 12 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 0 1-3.296-1.043 3.745 3.745 0 0 1-1.043-3.296A3.745 3.745 0 0 1 3 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 0 1 1.043-3.296 3.746 3.746 0 0 1 3.296-1.043A3.746 3.746 0 0 1 12 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 0 1 3.296 1.043 3.746 3.746 0 0 1 1.043 3.296A3.745 3.745 0 0 1 21 12Z"
                       />
                     </svg> */}
-                </div>
-              </div>
-              <div className="-mx-3 flex flex-wrap">
-                <div className="w-full px-3 sm:w-1/2">
-                  <div className="mb-5">
-                    <label
-                      htmlFor="time"
-                      className="mb-3 block text-base font-medium text-[#07074D]"
-                    >
-                      Priorität:
-                    </label>
-                    <select
-                      {...register("priority", { required: true })}
-                      name="priority"
-                      id="priority"
-                      className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
-                    >
-                      <option value={"Dringend"}>Dringend</option>
-                      <option value={"Mittel"}>Mittel</option>
-                      <option value={"Kann warten"}>Kann warten</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="w-full px-3 sm:w-1/2">
-                  <div className="mb-5">
-                    <label
-                      htmlFor="date"
-                      className="mb-3 block text-base font-medium text-[#07074D]"
-                    >
-                      Ich brauche eine Antwort bis:
-                    </label>
-                    <input
-                      {...register("deadline", { required: true })}
-                      type="date"
-                      name="deadline"
-                      id="deadline"
-                      className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
-                    />
-                  </div>
                 </div>
               </div>
 

@@ -5,7 +5,7 @@ import { AuthContext } from "../../context/AuthProvider";
 import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-export default function InquiryCard({ approval }) {
+export default function KennzahlEntryCard({ approval }) {
   const { setUserApprovals } = useContext(AuthContext);
 
   const [updateMessage, setUpdateMessage] = useState("");
@@ -126,22 +126,13 @@ export default function InquiryCard({ approval }) {
                   <div className="flex items-center">
                     <div className="ml-4">
                       <div className="text-sm underline text-gray-500">
-                        Artbeschreibung:
+                        Art der Kosten:
                       </div>
 
                       <div className="text-md font-medium text-gray-900">
                         {approval.title}
                       </div>
                     </div>
-                  </div>
-                </td>
-                <td className="flex-1 px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm underline text-gray-500">
-                    Art der Kosten:
-                  </div>
-
-                  <div className="text-md text-gray-900">
-                    {approval.typeOfExpense}
                   </div>
                 </td>
                 <td className="flex-1 px-6 py-4 whitespace-nowrap">
@@ -160,7 +151,8 @@ export default function InquiryCard({ approval }) {
                             ? "bg-orange-100 text-orange-800"
                             : approval.status === "Genehmigt"
                             ? "bg-green-100 text-green-800"
-                            : "bg-purple-100 text-purple-800"
+                            : "bg-violet-100 text-violet-800"
+
                         }`}
                       >
                         {approval.status}
@@ -194,32 +186,6 @@ export default function InquiryCard({ approval }) {
                     </div>
                   </div>
                 </td>
-                <td className="flex-1 px-6 py-4 whitespace-nowrap">
-                  <div className="flex items-center">
-                    <div className="ml-4">
-                      <div className="text-sm underline font-medium text-gray-500">
-                        Liquidität:
-                      </div>
-                      <div className="text-lg font-medium text-gray-900">
-                        <span
-                          className={`mt-2 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full ${
-                            approval.liquidity === false
-                              ? "bg-lime-100 text-lime-800"
-                              : approval.liquidityStatus === "Genehmigt"
-                              ? "bg-green-100 text-green-800"
-                              : approval.liquidityStatus === "Abgelehnt"
-                              ? "bg-red-100 text-red-800"
-                              : "bg-orange-100 text-orange-800"
-                          }`}
-                        >
-                          {approval.liquidity === false
-                            ? "Nicht benötigt"
-                            : approval.liquidityStatus}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </td>
               </tr>
             </tbody>
           </table>
@@ -243,7 +209,7 @@ export default function InquiryCard({ approval }) {
                   </div>
                 </td>
 
-                <td className="flex-1 px-6 py-4 whitespace-nowrap">
+                {/* <td className="flex-1 px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <div className="ml-4">
                       <div className="text-sm underline font-medium text-gray-500">
@@ -274,7 +240,7 @@ export default function InquiryCard({ approval }) {
                       </div>
                     </div>
                   </div>
-                </td>
+                </td> */}
 
                 <td className="flex-1 px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -289,7 +255,7 @@ export default function InquiryCard({ approval }) {
                                 approval.lastUpdate.length - 1
                               ].date
                             )
-                          : "Noch keine Antwort"}
+                          : "-"}
                       </div>
                     </div>
                   </div>
@@ -445,7 +411,8 @@ export default function InquiryCard({ approval }) {
                         </div>
                       </dialog>
                     </div>
-                  ) : approval.status === "In Prüfung" || approval.liquidityStatus === "In Prüfung" ? (
+                  ) : approval.status === "In Prüfung" ||
+                    approval.liquidityStatus === "In Prüfung" ? (
                     <div className="flex justify-center">
                       <button
                         onClick={() => modalRefUpdate.current.showModal()}

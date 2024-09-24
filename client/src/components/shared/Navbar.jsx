@@ -3,7 +3,17 @@ import { NavLink } from "react-router-dom";
 import { AuthContext } from "../../context/AuthProvider";
 
 export default function Navbar() {
-  const { user, titleSearch, setTitleSearch, titleSearchLiquidity, setTitleSearchLiquidity, titleSearchAdmin, setTitleSearchAdmin } = useContext(AuthContext);
+  const {
+    user,
+    titleSearch,
+    setTitleSearch,
+    titleSearchLiquidity,
+    setTitleSearchLiquidity,
+    titleSearchAdmin,
+    setTitleSearchAdmin,
+    titleSearchLeadRole,
+    setTitleSearchLeadRole
+  } = useContext(AuthContext);
 
   // Handle input change to update the titleSearch state
   const handleSearchChange = (event) => {
@@ -15,7 +25,9 @@ export default function Navbar() {
   const handleSearchChangeAdmin = (event) => {
     setTitleSearchAdmin(event.target.value);
   };
-
+  const handleSearchLeadRole = (event) => {
+    setTitleSearchLeadRole(event.target.value);
+  };
   return (
     <nav className="bg-white border-b border-gray-200 fixed z-30 w-full">
       <div className="px-3 py-3 lg:px-5 lg:pl-3">
@@ -45,7 +57,6 @@ export default function Navbar() {
                   window.location.pathname === "/meineAnfragen"
                     ? "mt-1 relative lg:w-72"
                     : "hidden"
-
                 }
               >
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -74,7 +85,7 @@ export default function Navbar() {
               </div>
               <div
                 className={
-                  window.location.pathname === "/admin/liquidity" 
+                  window.location.pathname === "/admin/liquidity"
                     ? "mt-1 relative lg:w-72"
                     : "hidden"
                 }
@@ -106,10 +117,8 @@ export default function Navbar() {
               <div
                 className={
                   window.location.pathname === "/admin/kostenanfragen"
-                  
                     ? "mt-1 relative lg:w-72"
                     : "hidden"
-
                 }
               >
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -134,6 +143,37 @@ export default function Navbar() {
                   placeholder="Suchen"
                   value={titleSearchAdmin}
                   onChange={handleSearchChangeAdmin}
+                />
+              </div>
+              <div
+                className={
+                  window.location.pathname === "/kennzahlen/meineAntraege"
+                    ? "mt-1 relative lg:w-72"
+                    : "hidden"
+                }
+              >
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="w-5 h-5 text-gray-500"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                      clipRule="evenodd"
+                    ></path>
+                  </svg>
+                </div>
+                <input
+                  type="text"
+                  name="search"
+                  id="topbar-search"
+                  className="visible bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-cyan-600 focus:border-cyan-600 block w-full pl-10 p-2.5"
+                  placeholder="Suchen"
+                  value={titleSearchLeadRole}
+                  onChange={handleSearchLeadRole}
                 />
               </div>
             </div>
