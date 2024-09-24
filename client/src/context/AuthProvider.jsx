@@ -9,16 +9,21 @@ export default function AuthProvider({ children }) {
 
   const [user, setUser] = useState(null);
   const [userApprovals, setUserApprovals] = useState(null);
+  const [userKennzahlenInquiries, setUserKennzahlenInquiries] = useState(null);
   const [yearlyApprovals, setYearlyApprovals] = useState(null);
+  const [yearlyKennzahlenApprovals, setYearlyKennzahlenApprovals] = useState(null);
   const [allApprovals, setAllApprovals] = useState(null);
   const [allApprovalsAdmin, setAllApprovalsAdmin] = useState(null);
   const [allLiqudityApprovals, setAllLiqudityApprovals] = useState(null);
   const [allBudgets, setAllBudgets] = useState(null);
+  const [allKennzahlenBudgets, setAllKennzahlenBudgets] = useState(null);
+  const [allKennzahlenInquiries, setAllKennzahlenInquiries] = useState(null);
   const [liquidity, setLiquidity] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toLocaleString("de-DE", { month: "long" })
   );
+  const [selectedDepartment, setSelectedDepartment] = useState("Anmietung");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonthAdmin, setSelectedMonthAdmin] = useState("");
   const [selectedYearAdmin, setSelectedYearAdmin] = useState(
@@ -30,7 +35,6 @@ export default function AuthProvider({ children }) {
   const [titleSearch, setTitleSearch] = useState("");
   const [titleSearchAdmin, setTitleSearchAdmin] = useState("");
   const [titleSearchLiquidity, setTitleSearchLiquidity] = useState("");
-  const [userRole, setUserRole] = useState("");
 
   useEffect(() => {
     axiosClient
@@ -59,7 +63,6 @@ export default function AuthProvider({ children }) {
         )
         .then((response) => {
           setUserApprovals(response.data);
-          console.log(`/costApproval/getUserApprovals?title=${titleSearch}`);
         })
         .catch(() => {
           setUserApprovals(null);
@@ -89,11 +92,6 @@ export default function AuthProvider({ children }) {
           }`
         )
         .then((response) => {
-          console.log(
-            `/costApproval/getAllApprovals?year=${selectedYearAdmin}&status=${status}&title=${titleSearchAdmin}${
-              approver ? `&approver=${approver}` : ""
-            }`
-          );
           setAllApprovalsAdmin(response.data);
         })
         .catch(() => {
@@ -140,6 +138,56 @@ export default function AuthProvider({ children }) {
         .finally(() => {
           setIsLoading(false);
         });
+
+        axiosClient
+        .get(`/budgetKennzahlen/getAllKennzahlenBudgets?year=${selectedYear}&department=${selectedDepartment}`)
+        .then((response) => {
+          setAllKennzahlenBudgets(response.data);
+        })
+        .catch(() => {
+          setAllKennzahlenBudgets(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+
+        axiosClient
+        .get(`/kennzahlen/getAllKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`)
+        .then((response) => {
+          setAllKennzahlenInquiries(response.data);
+        })
+        .catch(() => {
+          setAllKennzahlenInquiries(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+
+        axiosClient
+        .get(`/kennzahlen/getAllKennzahlenInquiries?year=${selectedYear}`)
+        .then((response) => {
+          setYearlyKennzahlenApprovals(response.data);
+          console.log(response.data)
+        })
+        .catch(() => {
+          setAllKennzahlenInquiries(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+
+        axiosClient
+        .get(`/kennzahlen/getAllUserKennzahlenInquiries`)
+        .then((response) => {
+          setUserKennzahlenInquiries(response.data);
+          console.log(response.data)
+        })
+        .catch(() => {
+          setUserKennzahlenInquiries(null);
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
     };
 
     fetchApprovals();
@@ -154,6 +202,7 @@ export default function AuthProvider({ children }) {
     statusAccounting,
     titleSearchLiquidity,
     titleSearchAdmin,
+    selectedDepartment
   ]);
 
   const login = async (data) => {
@@ -191,7 +240,6 @@ export default function AuthProvider({ children }) {
         } else {
           navigate("/meineAnfragen");
         }
-        console.log(role);
       });
   };
 
@@ -242,6 +290,15 @@ export default function AuthProvider({ children }) {
         setTitleSearchLiquidity,
         setTitleSearchAdmin,
         titleSearchAdmin,
+        allKennzahlenBudgets,
+        setAllKennzahlenBudgets,
+        setSelectedDepartment,
+        selectedDepartment,
+        allKennzahlenInquiries,
+        setAllKennzahlenInquiries,
+        yearlyKennzahlenApprovals,
+        setUserKennzahlenInquiries,
+        userKennzahlenInquiries
       }}
     >
       {children}

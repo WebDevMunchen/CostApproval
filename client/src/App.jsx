@@ -7,10 +7,13 @@ import Protected from "./context/Protected";
 import Login from "./components/shared/Login";
 import EditInquiry from "./components/user/EditInquiry";
 import Authorize from "./context/Authorize";
-import Budget from "./components/administrator/Budget";
 import Inquiries from "./components/administrator/Inquiries";
 import { Bounce, ToastContainer } from "react-toastify";
 import LiquidityInquiries from "./components/administrator/LiquidityInquiries";
+import BudgetIntern from "./components/administrator/BudgetIntern";
+import BudgetKennzahlen from "./components/administrator/BudgetKennzahlen";
+import AdminDashboardKennzahlen from "./components/administrator/AdminDashboardKennzahlen";
+import KennzahlenForm from "./components/userLeadRole/KennzahlenForm";
 
 function App() {
   return (
@@ -39,12 +42,15 @@ function App() {
           <Route path="/meineAnfragen" element={<MyInquiries />} />
           <Route path="/anfrageBearbeiten/:id" element={<EditInquiry />} />
           <Route path="/neueAnfrage" element={<InquiryForm />} />
+          <Route path="/Kennzahlen/neuerAntrag" element={<KennzahlenForm />} />
           <Route
             path="/admin"
             element={<Authorize roles={["admin", "accounting"]} />}
           >
             <Route path="dashboard" element={<AdminDashboard />} />
-            <Route path="budgetVerwalten" element={<Budget />} />
+            <Route path="dashboardKennzahlen" element={<AdminDashboardKennzahlen />} />
+            <Route path="budgetVerwaltenIntern" element={<BudgetIntern />} />
+            <Route path="budgetVerwaltenKennzahlen" element={<BudgetKennzahlen />} />
             <Route path="kostenanfragen" element={<Inquiries />} />
             <Route path="liquidity" element={<LiquidityInquiries />} />
           </Route>

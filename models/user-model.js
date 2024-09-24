@@ -9,6 +9,7 @@ const userSchema = new Schema({
   password: { type: String, required: true, select: false },
   department: { type: String, required: true },
   role: { type: String, enum: ["user", "admin", "accounting"], default: "user" },
+  leadRole: { type: String, enum: ["Anmietung", "Projektbezogene Fremdpersonalkosten", "Fremdpersonalkosten LL", "Projektbezogene Fremdtransportkosten", "Transportkosten/Umschlag"], }
 });
 
 userSchema.pre("save", async function (next) {

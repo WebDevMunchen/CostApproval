@@ -4,35 +4,47 @@ import { AuthContext } from "../../context/AuthProvider";
 import { NavLink } from "react-router-dom";
 import Chart from "react-apexcharts";
 
-export default function AdminDashboard() {
+export default function AdminDashboardKennzahlen() {
   const {
-    allApprovals,
-    allBudgets,
-    selectedMonth,
     selectedYear,
-    setSelectedMonth,
     setSelectedYear,
-    yearlyApprovals,
     setStatus,
     setTitleSearch,
     setTitleSearchAdmin,
-    setTitleSearchLiquidity
+    setTitleSearchLiquidity,
+    selectedDepartment,
+    setSelectedDepartment,
+    selectedMonth,
+    setSelectedMonth,
+    allKennzahlenBudgets,
+    allKennzahlenInquiries,
+    yearlyKennzahlenApprovals,
   } = useContext(AuthContext);
 
   useEffect(() => {
     setStatus("");
     setSelectedYear(new Date().getFullYear());
-    setTitleSearch("")
-    setTitleSearchAdmin("")
-    setTitleSearchLiquidity("")
+    setTitleSearch("");
+    setTitleSearchAdmin("");
+    setTitleSearchLiquidity("");
   }, []);
 
-  const totalApprovedAmount = allApprovals?.reduce(
+  let inquiryCountKennzahlen = 0;
+
+  allKennzahlenInquiries?.forEach((element) => {
+    if (element.status !== "Innerhalb des Budgets") {
+      inquiryCountKennzahlen++;
+    } else {
+      return;
+    }
+  });
+
+  const totalApprovedAmount = allKennzahlenInquiries?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
-      if (status === "Genehmigt") {
-        acc.totalAmount += expenseAmount;
-        acc.totalAmountCents += expenseAmountCent;
-      }
+      // if (status === "Genehmigt") {
+      acc.totalAmount += expenseAmount;
+      acc.totalAmountCents += expenseAmountCent;
+      // }
       return acc;
     },
     { totalAmount: 0, totalAmountCents: 0 }
@@ -46,20 +58,23 @@ export default function AdminDashboard() {
   const adjustedTotalAmount = totalAmount + Math.floor(totalAmountCents / 100);
   const adjustedTotalAmountCents = totalAmountCents % 100;
 
-  const selectedBudget = allBudgets?.find(
-    (budget) => budget.year === selectedYear && budget.month === selectedMonth
+  const selectedBudget = allKennzahlenBudgets?.find(
+    (budget) =>
+      budget.year === selectedYear &&
+      budget.month === selectedMonth &&
+      budget.department === selectedDepartment
   );
   const budgetAmount = selectedBudget?.amount || 0;
 
   const differenceInEuros =
     budgetAmount - (adjustedTotalAmount + adjustedTotalAmountCents / 100);
 
-  const totalApprovedForYear = yearlyApprovals?.reduce(
+  const totalApprovedForYear = allKennzahlenInquiries?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
-      if (status === "Genehmigt") {
-        acc.totalAmount += expenseAmount;
-        acc.totalAmountCents += expenseAmountCent;
-      }
+      // if (status === "Genehmigt") {
+      acc.totalAmount += expenseAmount;
+      acc.totalAmountCents += expenseAmountCent;
+      // }
       return acc;
     },
     { totalAmount: 0, totalAmountCents: 0 }
@@ -73,7 +88,7 @@ export default function AdminDashboard() {
   const adjustedYearlyTotalCents = totalYearlyCents % 100;
 
   const totalBudgetForYear =
-    allBudgets
+    allKennzahlenBudgets
       ?.filter((budget) => budget.year === selectedYear)
       .reduce((acc, curr) => acc + curr.amount, 0) || 0;
 
@@ -96,16 +111,24 @@ export default function AdminDashboard() {
     "Dezember",
   ];
 
+  const departments = [
+    "Anmietung",
+    "Projektbezogene Fremdpersonalkosten",
+    "Fremdpersonalkosten LL",
+    "Projektbezogene Fremdtransportkosten",
+    "Transportkosten/Umschlag",
+  ];
+
   const years = [2024, 2025, 2026];
 
   const monthlyApprovedAmounts = months.map((_, index) => {
     const monthIndex = index + 1;
 
-    const totalForMonth = yearlyApprovals
+    const totalForMonth = yearlyKennzahlenApprovals
       ?.filter(
         (approval) =>
-          approval.status === "Genehmigt" &&
           approval.year === selectedYear &&
+          approval.department === selectedDepartment &&
           months.indexOf(approval.month) + 1 === monthIndex
       )
       .reduce(
@@ -127,7 +150,7 @@ export default function AdminDashboard() {
   const monthlyBudgets = months.map((month, index) => {
     const monthIndex = index + 1;
 
-    const budgetForMonth = allBudgets?.find(
+    const budgetForMonth = allKennzahlenBudgets?.find(
       (budget) =>
         budget.year === selectedYear &&
         months.indexOf(budget.month) + 1 === monthIndex
@@ -149,7 +172,7 @@ export default function AdminDashboard() {
     },
     series: [
       {
-        name: "Genehmigt",
+        name: "Augaben",
         data: monthlyApprovedAmounts,
       },
       {
@@ -191,13 +214,21 @@ export default function AdminDashboard() {
       gradient: {
         shadeIntensity: 1,
         opacityFrom: 0.1,
-        opacityTo: 0.8,
+        opacityTo: 0.5,
+        gradientToColors: ["#fb6542", "#6ab187"],
+        stops: [
+          [0, "#ffffff", 0.4],
+          [50, "#fb6542", 0.5],
+          [50, "#6ab187", 0.5],
+        ],
       },
     },
     stroke: {
       curve: "smooth",
       width: 2,
+      colors: ["#fb6542", "#6ab187"],
     },
+    colors: ["#fb6542", "#6ab187"],
     tooltip: {
       y: {
         formatter: (value) =>
@@ -231,12 +262,12 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div className="flex-shrink-0">
                       <h3 className="mb-2 px-2 text-base font-semibold text-gray-500">
-                        Budget {selectedMonth}:
+                        Budget für {selectedMonth}:
                       </h3>
 
                       {budgetAmount === 0 ? (
                         <NavLink
-                          to={"/admin/budgetVerwalten"}
+                          to={"/admin/budgetVerwaltenKennzahlen"}
                           className="text-blue-600 hover:text-blue-800 font-semibold text-2xl rounded-lg px-2 py-2 transition duration-300 ease-in-out hover:bg-blue-100"
                         >
                           Budget erstellen
@@ -268,7 +299,7 @@ export default function AdminDashboard() {
 
                     <div className="flex-shrink-0 text-left">
                       <h3 className="mb-2 text-base font-semibold text-gray-500">
-                        Bisher genehmigt:
+                        Bisher ausgegeben:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
                         {`${totalAmount.toLocaleString("de-DE")},${
@@ -332,7 +363,7 @@ export default function AdminDashboard() {
                         Anfragen in {selectedMonth} {selectedYear}:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
-                        {allApprovals?.length}
+                        {inquiryCountKennzahlen}
                       </span>
                     </div>
 
@@ -342,7 +373,7 @@ export default function AdminDashboard() {
                           Noch öffen:
                         </span>
                         <span className="text-green-500">
-                          {allApprovals?.filter(
+                          {allKennzahlenInquiries?.filter(
                             (approval) =>
                               approval.status === "Neu" ||
                               approval.status === "In Prüfung"
@@ -370,7 +401,7 @@ export default function AdminDashboard() {
                           Abgeschlossen:
                         </span>
                         <span className="text-blue-500">
-                          {allApprovals?.filter(
+                          {allKennzahlenInquiries?.filter(
                             (approval) => approval.status === "Genehmigt"
                           ).length || 0}
                         </span>
@@ -395,7 +426,7 @@ export default function AdminDashboard() {
                           Abgelehnt:
                         </span>
                         <span className="text-red-500">
-                          {allApprovals?.filter(
+                          {allKennzahlenInquiries?.filter(
                             (approval) => approval.status === "Abgelehnt"
                           ).length || 0}
                         </span>
@@ -422,7 +453,7 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between">
                     <div className="flex-shrink-0">
                       <h3 className="mb-2 text-base font-semibold text-gray-500">
-                        Budget {selectedYear}:
+                        Gesamtbudget in {selectedYear}:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
                         {`${totalBudgetForYear.toLocaleString("de-DE", {
@@ -448,7 +479,7 @@ export default function AdminDashboard() {
 
                     <div className="flex-shrink-0 text-left">
                       <h3 className="mb-2 text-base font-semibold text-gray-500">
-                        Bisher genehmigt:
+                        Bisher ausgegeben:
                       </h3>
                       <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
                         {`${(
@@ -509,7 +540,20 @@ export default function AdminDashboard() {
               </div>
               <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
                 <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-2">
-                  <div className="flex items-center justify-end mb-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center">
+                      <select
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className="border-gray-300 border-2 p-2 rounded-md "
+                      >
+                        {departments.map((dep) => (
+                          <option key={dep} value={dep}>
+                            {dep}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="flex items-center">
                       <select
                         value={selectedYear}
@@ -524,6 +568,7 @@ export default function AdminDashboard() {
                           </option>
                         ))}
                       </select>
+
                       <select
                         value={selectedMonth}
                         onChange={(e) => setSelectedMonth(e.target.value)}
@@ -576,7 +621,7 @@ export default function AdminDashboard() {
                                   scope="col"
                                   className="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                                 >
-                                  Bisher genehmigt
+                                  Bisher ausgegeben
                                 </th>
                                 <th
                                   scope="col"
@@ -588,17 +633,16 @@ export default function AdminDashboard() {
                             </thead>
                             <tbody className="bg-white">
                               {months.map((month) => {
-                                const budget = allBudgets?.find(
+                                const budget = allKennzahlenBudgets?.find(
                                   (b) =>
                                     b.year === selectedYear && b.month === month
                                 );
                                 const budgetAmount = budget ? budget.amount : 0;
 
-                                const approved = yearlyApprovals?.filter(
+                                const approved = allKennzahlenInquiries?.filter(
                                   (approval) =>
                                     approval.year === selectedYear &&
-                                    approval.month === month &&
-                                    approval.status === "Genehmigt"
+                                    approval.month === month
                                 );
 
                                 let totalApprovedAmount = 0;

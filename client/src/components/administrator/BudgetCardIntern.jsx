@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-const BudgetCard = ({ month, budget, selectedYear, onSubmit, onCreate }) => {
+const BudgetCardIntern = ({ month, budget, selectedYear, onSubmit, onCreate }) => {
   const [defaultAmount, setDefaultAmount] = useState("");
   const {
     register,
@@ -44,7 +44,7 @@ const BudgetCard = ({ month, budget, selectedYear, onSubmit, onCreate }) => {
       <div className="mb-3 flex items-center w-full">
         <label
           htmlFor={`amount-${month}`}
-          className="block text-sm font-medium text-[#07074D] mr-2 w-1/4"
+          className="block text-sm font-medium text-[#07074D] w-1/4"
         >
           Betrag (€):
         </label>
@@ -52,13 +52,13 @@ const BudgetCard = ({ month, budget, selectedYear, onSubmit, onCreate }) => {
           type="number"
           {...register("amount", { required: true })}
           id={`amount-${month}`}
-          className={`w-3/4 rounded-md border ${
+          className={`w-3/5 rounded-md border ${
             errors.amount ? "border-red-500" : "border-[#e0e0e0]"
           } bg-white py-2 px-3 text-sm text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md`}
           placeholder="€"
         />
         {!budget && (
-          <span className="text-red-500 font-semibold text-xs ml-2">
+          <span className="text-red-500 font-semibold text-xs ml-2 w-1/4">
             Budget noch nicht erstellt
           </span>
         )}
@@ -83,4 +83,4 @@ const BudgetCard = ({ month, budget, selectedYear, onSubmit, onCreate }) => {
   );
 };
 
-export default BudgetCard;
+export default BudgetCardIntern;

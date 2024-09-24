@@ -13,6 +13,7 @@ const register = asyncWrapper(async (req, res, next) => {
     password,
     department,
     role,
+    leadRole
   } = req.body;
 
   const found = await User.findOne({ abbreviation });
@@ -29,6 +30,7 @@ const register = asyncWrapper(async (req, res, next) => {
     password,
     department,
     role,
+    leadRole
   });
 
   res.status(201).json({
@@ -62,6 +64,7 @@ const login = asyncWrapper(async (req, res, next) => {
     firstName: user.firstName,
     lastName: user.lastName,
     role: user.role,
+    leadRole: user.leadRole
   };
 
   const token = jwt.sign(payload, process.env.JWT_SECRET, {

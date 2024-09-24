@@ -2,11 +2,12 @@ import { useContext } from "react";
 import Sidebar from "../shared/Sidebar";
 import axiosClient from "../../utils/axiosClient";
 import { AuthContext } from "../../context/AuthProvider";
-import BudgetCard from "./BudgetCard";
 import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { NavLink } from "react-router-dom";
+import BudgetCardIntern from "./BudgetCardIntern";
 
-export default function Budget() {
+export default function BudgetIntern() {
   const { allBudgets, setAllBudgets, selectedYear, setSelectedYear } =
     useContext(AuthContext);
 
@@ -106,10 +107,11 @@ export default function Budget() {
 
         <div className="py-8 px-12 h-[100vh] w-full bg-gray-50 relative overflow-y-auto lg:ml-64">
           <div className="shadow rounded-lg px-6 py-6 mx-auto w-full bg-white">
-            <div className="flex gap-4 mb-4">
+            <div className="flex justify-between gap-4 mb-4">
+              <div className="flex items-center gap-2">
               <label
                 htmlFor="year"
-                className="mt-2 block text-sm font-medium text-[#07074D]"
+                className="block text-sm font-medium text-[#07074D]"
               >
                 Wähle das Jahr:
               </label>
@@ -125,6 +127,26 @@ export default function Budget() {
                   </option>
                 ))}
               </select>
+              </div>
+
+              <div className="flex justify-around gap-8">
+                  <NavLink
+                    to={"/admin/budgetVerwaltenIntern"}
+                    className={
+                      location.pathname === "/admin/budgetVerwaltenIntern"
+                        ? "text-xl px-2.5 py-1.5 rounded-lg bg-[#293751] font-semibold leading-tight tracking-tight text-white md:text-2xl dark:text-white"
+                        : "middle none  font-bold center transition-all disabled:opacity-50 disabled:shadow-none disabled:pointer-events-none text-sm py-3 rounded-lg text-white hover:bg-white/10 active:bg-white/30 w-full flex items-center gap-4 px-4 capitalize"
+                    }
+                  >
+                    Interne Anfragen
+                  </NavLink>
+                  <NavLink
+                    to={"/admin/budgetVerwaltenKennzahlen"}
+                    className="text-xl py-1.5 px-2.5 font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white"
+                  >
+                    Kennzahlen
+                  </NavLink>
+                </div>
             </div>
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white mb-4">
               Budget für das Jahr {selectedYear}:
@@ -135,7 +157,7 @@ export default function Budget() {
                 const budget = allBudgets?.find((b) => b.month === month);
 
                 return (
-                  <BudgetCard
+                  <BudgetCardIntern
                     key={month}
                     month={month}
                     budget={budget}
