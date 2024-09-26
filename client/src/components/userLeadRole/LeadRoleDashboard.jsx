@@ -30,10 +30,10 @@ export default function LeadRoleDashboard() {
     setTitleSearch("");
     setTitleSearchAdmin("");
     setTitleSearchLiquidity("");
-    setSelectedDepartment(user.leadRole);
+    setSelectedDepartment(selectedDepartment);
 
     axiosClient
-      .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}`)
+      .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`)
       .then((response) => {
         setOverviewUser(response.data);
         console.log(response.data);
@@ -41,7 +41,7 @@ export default function LeadRoleDashboard() {
       .catch(() => {
         setOverviewUser(null);
       });
-  }, []);
+  }, [selectedDepartment]);
 
   let inquiryCountKennzahlen = 0;
 
@@ -213,13 +213,15 @@ export default function LeadRoleDashboard() {
         },
         { totalAmount: 0, totalAmountCents: 0 }
       );
-
     const { totalAmount, totalAmountCents } = totalForMonth || {
       totalAmount: 0,
       totalAmountCents: 0,
     };
     return totalAmount + totalAmountCents / 100;
   });
+
+  console.log(monthlyApprovedAmounts)
+
 
   const monthlyApprovedAmountsWithPending = months.map((_, index) => {
     const monthIndex = index + 1;
@@ -228,6 +230,7 @@ export default function LeadRoleDashboard() {
       ?.filter(
         (approval) =>
           approval.year === selectedYear &&
+        
           approval.department === selectedDepartment &&
           months.indexOf(approval.month) + 1 === monthIndex &&
           (approval.status === "Genehmigt" ||
@@ -243,7 +246,6 @@ export default function LeadRoleDashboard() {
         },
         { totalAmount: 0, totalAmountCents: 0 }
       );
-
     const { totalAmount, totalAmountCents } = totalForMonth || {
       totalAmount: 0,
       totalAmountCents: 0,
@@ -765,7 +767,20 @@ export default function LeadRoleDashboard() {
               </div>
               <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-5 gap-4">
                 <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-3">
-                  <div className="flex items-center justify-end mb-4">
+                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center">
+                      <select
+                        value={selectedDepartment}
+                        onChange={(e) => setSelectedDepartment(e.target.value)}
+                        className="border-gray-300 border-2 p-2 rounded-md "
+                      >
+                        {user.leadRole.map((dep) => (
+                          <option key={dep} value={dep}>
+                            {dep}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <div className="flex items-center">
                       <select
                         value={selectedYear}

@@ -253,7 +253,7 @@ export default function AdminDashboardKennzahlen() {
         ></div>
         <div
           id="main-content"
-          className="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64"
+          className="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-52"
         >
           <main>
             <div className="py-6 px-4">

@@ -33,13 +33,13 @@ export default function Sidebar() {
     >
       <div className="relative flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white pt-0">
         <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-          <div className="flex-1 mt-2 px-3 bg-white divide-y space-y-1">
+          <div className="flex-1 mt-2 px-2 bg-white divide-y space-y-1">
             {user.role === "user" ? (
               <ul className="space-y-2 pb-2">
                 <li>
                   <NavLink
                     to={"/meineAnfragen"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -57,7 +57,7 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     to={"/neueAnfrage"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -75,7 +75,7 @@ export default function Sidebar() {
                 <li className={user.leadRole ? "visible" : "hidden"}>
                   <NavLink
                     to={"/kennzahlen/meinBudget"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -93,7 +93,7 @@ export default function Sidebar() {
                 <li className={user.leadRole ? "visible" : "hidden"}>
                   <NavLink
                     to={"/kennzahlen/meineAntraege"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -112,7 +112,7 @@ export default function Sidebar() {
                 <li className={user.leadRole ? "visible" : "hidden"}>
                   <NavLink
                     to={"/kennzahlen/neuerAntrag"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -130,7 +130,7 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     onClick={() => logout()}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -151,7 +151,7 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     to={"/admin/dashboard"}
-                    className="text-base text-gray-900 font-semibold rounded-lg flex items-center p-2 hover:bg-gray-100 group"
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg flex items-center p-2 hover:bg-gray-100 group"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -167,7 +167,7 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     to={"/admin/dashboardKennzahlen"}
-                    className="text-base text-gray-900 font-semibold rounded-lg flex items-center p-2 hover:bg-gray-100 group"
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg flex items-center px-1 py-2 hover:bg-gray-100 group"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -183,7 +183,7 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     to={"/admin/kostenanfragen"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group"
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -204,17 +204,17 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     to={"/admin/liquidity"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group"
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 320 512"
-                      className="overflow-visible fill-gray-500 group-hover:fill-slate-950 transition-colors duration-200 ml-1"
+                      className="overflow-visible fill-gray-500 group-hover:fill-slate-950 transition-colors duration-200"
                       height="24"
                     >
                       <path d="M512 80c8.8 0 16 7.2 16 16l0 32L48 128l0-32c0-8.8 7.2-16 16-16l448 0zm16 144l0 192c0 8.8-7.2 16-16 16L64 432c-8.8 0-16-7.2-16-16l0-192 480 0zM64 32C28.7 32 0 60.7 0 96L0 416c0 35.3 28.7 64 64 64l448 0c35.3 0 64-28.7 64-64l0-320c0-35.3-28.7-64-64-64L64 32zm56 304c-13.3 0-24 10.7-24 24s10.7 24 24 24l48 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-48 0zm128 0c-13.3 0-24 10.7-24 24s10.7 24 24 24l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24l-112 0z" />
                     </svg>
-                    <span className="ml-5 flex-1 whitespace-nowrap">
+                    <span className="ml-6 flex-1 whitespace-nowrap">
                       Liquidität
                     </span>
                     <span className="bg-red-200 text-red-800 ml-3 text-sm font-medium inline-flex items-center justify-center px-2 rounded-full">
@@ -225,7 +225,7 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     to={"/admin/budgetVerwaltenIntern"}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -243,7 +243,7 @@ export default function Sidebar() {
                 <li>
                   <NavLink
                     onClick={() => logout()}
-                    className="text-base text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
+                    className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -253,7 +253,7 @@ export default function Sidebar() {
                     >
                       <path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 224c0 17.7 14.3 32 32 32s32-14.3 32-32l0-224zM143.5 120.6c13.6-11.3 15.4-31.5 4.1-45.1s-31.5-15.4-45.1-4.1C49.7 115.4 16 181.8 16 256c0 132.5 107.5 240 240 240s240-107.5 240-240c0-74.2-33.8-140.6-86.6-184.6c-13.6-11.3-33.8-9.4-45.1 4.1s-9.4 33.8 4.1 45.1c38.9 32.3 63.5 81 63.5 135.4c0 97.2-78.8 176-176 176s-176-78.8-176-176c0-54.4 24.7-103.1 63.5-135.4z" />
                     </svg>
-                    <span className="ml-3 flex-1 whitespace-nowrap">
+                    <span className="ml-4 flex-1 whitespace-nowrap">
                       Abmelden
                     </span>
                   </NavLink>

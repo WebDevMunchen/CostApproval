@@ -8,7 +8,12 @@ import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function KennzahlenForm() {
-  const { setUserKennzahlenInquiries, setYearlyUserKennzahlenInquiries, user, selectedYear } = useContext(AuthContext);
+  const {
+    setUserKennzahlenInquiries,
+    setYearlyUserKennzahlenInquiries,
+    user,
+    selectedYear,
+  } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
@@ -42,8 +47,11 @@ export default function KennzahlenForm() {
   }
 
   const [selectedMonth, setSelectedMonth] = useState(options[0]);
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    user?.leadRole[0]
+  ); // Default to first role
 
-  console.log(selectedMonth)
+  console.log(selectedMonth);
 
   const [defaultValueCents, setDefaultValueCents] = useState(0);
   const [allKennzahlenBudgets, setAllKennzahlenBudgets] = useState(null);
@@ -54,7 +62,7 @@ export default function KennzahlenForm() {
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.toLocaleString("default", { month: "long" });
 
-  const selectedDepartment = user?.leadRole;
+  // const selectedDepartment = user?.leadRole;
 
   useEffect(() => {
     axiosClient
@@ -64,11 +72,14 @@ export default function KennzahlenForm() {
       .then((response) => {
         setAllKennzahlenBudgets(response.data);
         console.log(response.data);
+        console.log(
+          `/budgetKennzahlen/getAllKennzahlenBudgets?year=${currentYear}&department=${selectedDepartment}&month=${selectedMonth}`
+        );
       })
       .catch(() => {
         setAllKennzahlenBudgets(null);
       });
-  }, [selectedMonth]);
+  }, [selectedMonth, selectedDepartment]);
 
   const {
     register,
@@ -77,7 +88,16 @@ export default function KennzahlenForm() {
   } = useForm();
 
   const onSubmit = (data) => {
+    console.log("Form data before submit:", data); // Log form data
+
+    if (!allKennzahlenBudgets || allKennzahlenBudgets.length === 0) {
+      console.error("No budgets found for the selected month:", selectedMonth);
+      return; // Early return if no budgets are available
+    }
+
     const budgetData = allKennzahlenBudgets[0];
+
+    console.log("Budget data:", budgetData); // Log the budget data
 
     const formAmount =
       parseFloat(data.expenseAmount) + parseFloat(data.expenseAmountCent) / 100;
@@ -85,18 +105,31 @@ export default function KennzahlenForm() {
     const usedAmount = budgetData.usedAmount || 0;
     const totalBudget = budgetData.amount || 0;
 
+    console.log("Form amount:", formAmount); // Log the calculated formAmount
+    console.log("Used amount:", usedAmount); // Log the usedAmount
+    console.log("Total budget:", totalBudget); // Log the total budget
+
     axiosClient
-      .post("/kennzahlen/createNewEntry", { ...data, formAmount, selectedMonth  })
+      .post("/kennzahlen/createNewEntry", {
+        ...data,
+        formAmount,
+        selectedMonth,
+      })
       .then((response) => {
+        console.log("Entry created successfully:", response.data); // Log success response
         return axiosClient.get("/kennzahlen/getAllUserKennzahlenInquiries");
       })
       .then((response) => {
-        setUserKennzahlenInquiries(response.data)
+        console.log("User inquiries fetched:", response.data); // Log fetched inquiries
+        setUserKennzahlenInquiries(response.data);
 
-        return axiosClient.get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}`)
+        return axiosClient.get(
+          `/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}`
+        );
       })
       .then((response) => {
-        setYearlyUserKennzahlenInquiries(response.data)
+        console.log("Yearly user inquiries fetched:", response.data); // Log yearly inquiries
+        setYearlyUserKennzahlenInquiries(response.data);
 
         notifySuccess();
         if (formAmount + usedAmount < totalBudget) {
@@ -104,10 +137,14 @@ export default function KennzahlenForm() {
         }
       })
       .catch((error) => {
-        console.log(error);
+        console.error("Error occurred:", error); // Log the entire error object
+        if (error.response) {
+          console.error(error.response.data.message); // Log specific error message if available
+        }
       });
 
     if (formAmount + usedAmount > totalBudget) {
+      console.log("Form amount exceeds the budget, showing modal");
       modalRefUpdate.current.showModal();
     }
   };
@@ -125,7 +162,6 @@ export default function KennzahlenForm() {
       transition: Bounce,
       className: "mt-14 mr-6",
     });
-
 
   return (
     <div>
@@ -155,16 +191,15 @@ export default function KennzahlenForm() {
                       placeholder="Gib eine Art der Kosten ein"
                     />
                   </div>
-
                 </div>
                 <div>
-                <label
-                      htmlFor="title"
-                      className="mb-3 block text-base font-medium text-[#07074D]"
-                    >
-                      Monat
-                    </label>
-                <select
+                  <label
+                    htmlFor="title"
+                    className="mb-3 block text-base font-medium text-[#07074D]"
+                  >
+                    Monat
+                  </label>
+                  <select
                     value={selectedMonth}
                     onChange={(e) => setSelectedMonth(e.target.value)}
                     className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
@@ -175,6 +210,29 @@ export default function KennzahlenForm() {
                       </option>
                     ))}
                   </select>
+                </div>
+
+                <div className="w-full px-3 sm:w-1/2">
+                  <div className="mb-5">
+                    <label
+                      htmlFor="leadRole"
+                      className="mb-3 block text-base font-medium text-[#07074D]"
+                    >
+                      Abteilung auswählen
+                    </label>
+                    <select
+                      {...register("leadRole", { required: true })}
+                      onChange={(e) => setSelectedDepartment(e.target.value)}
+                      id="leadRole"
+                      className={user.leadRole.length === 1 ? "hidden" : "visiblew-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"}
+                    >
+                      {user.leadRole.map((role, index) => (
+                        <option key={index} value={role}>
+                          {role}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
               <div className="mb-5">
@@ -317,11 +375,18 @@ export default function KennzahlenForm() {
 
               <div>
                 <button
-                  className={
-                      "bg-gradient-to-b from-gray-700 to-gray-900 text-lg font-medium p-2 mt-2 md:pd-2 text-white uppercase w-full rounded cursor-pointer hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
-                  }
+                  className={`bg-gradient-to-b ${
+                    allKennzahlenBudgets && allKennzahlenBudgets.length === 0
+                      ? "from-slate-500 to-slate-600 cursor-not-allowed"
+                      : "from-gray-700 to-gray-900 transition transform hover:-translate-y-0.5"
+                  } text-lg font-medium p-2 mt-2 md:pd-2 text-white uppercase w-full rounded cursor-pointer hover:shadow-lg font-medium`}
+                  disabled={
+                    !allKennzahlenBudgets || allKennzahlenBudgets.length === 0
+                  } // Disable button if no budgets
                 >
-                  ÜBERMITTELN
+                  {!allKennzahlenBudgets || allKennzahlenBudgets.length === 0
+                    ? "Budget noch nicht vorhanden"
+                    : " Übermitteln"}
                 </button>
               </div>
             </form>
@@ -351,9 +416,7 @@ export default function KennzahlenForm() {
                   <div>
                     <span class="font-medium">Achtung!</span> Mit diesem Eintrag
                     hast du dein Budgetlimit überschritten. Dieser Eintrag muss
-                    zuerst von deinem Vorgesetzten genehmigt werden. Bitte
-                    beachten, dass du keine weitere Einträge erstellen kannst,
-                    bis alle deine Anfragen genehmigt wurden
+                    zuerst von deinem Vorgesetzten genehmigt werden
                   </div>
                 </div>
 

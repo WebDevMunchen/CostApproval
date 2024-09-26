@@ -26,7 +26,7 @@ export default function AuthProvider({ children }) {
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toLocaleString("de-DE", { month: "long" })
   );
-  const [selectedDepartment, setSelectedDepartment] = useState("Anmietung");
+  const [selectedDepartment, setSelectedDepartment] = useState(user?.leadRole[0] || ""); // Init
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonthAdmin, setSelectedMonthAdmin] = useState("");
   const [selectedYearAdmin, setSelectedYearAdmin] = useState(
@@ -39,6 +39,8 @@ export default function AuthProvider({ children }) {
   const [titleSearchAdmin, setTitleSearchAdmin] = useState("");
   const [titleSearchLiquidity, setTitleSearchLiquidity] = useState("");
   const [titleSearchLeadRole, setTitleSearchLeadRole] = useState("");
+
+console.log(selectedDepartment)
 
   useEffect(() => {
     axiosClient
@@ -56,6 +58,13 @@ export default function AuthProvider({ children }) {
         setIsLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    // Only set the selectedDepartment if it's still empty
+    if (!selectedDepartment && user?.leadRole?.length > 0) {
+      setSelectedDepartment(user.leadRole[0]);
+    }
+  }, [user, selectedDepartment]);
 
   useEffect(() => {
     if (!user) return;
@@ -186,9 +195,12 @@ export default function AuthProvider({ children }) {
 
       axiosClient
         .get(
-          `/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&month=${selectedMonth}&status=${status}&title=${titleSearchLeadRole}`
+          `/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&month=${selectedMonth}&status=${status}&title=${titleSearchLeadRole}&department=${selectedDepartment}`
         )
+
         .then((response) => {
+        console.log(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&month=${selectedMonth}&status=${status}&title=${titleSearchLeadRole}&department=${selectedDepartment}`)
+
           setUserKennzahlenInquiries(response.data);
           console.log(response.data);
         })
@@ -200,7 +212,7 @@ export default function AuthProvider({ children }) {
         });
 
       axiosClient
-        .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}`)
+        .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`)
         .then((response) => {
           setYearlyUserKennzahlenInquiries(response.data);
           console.log(response.data);

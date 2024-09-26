@@ -8,10 +8,11 @@ import { NavLink } from "react-router-dom";
 import BudgetCardKennzahlen from "./BudgetCardKennzahlen";
 
 export default function BudgetKennzahlen() {
-  const { allKennzahlenBudgets, setAllKennzahlenBudgets, selectedYear, setSelectedYear } =
+  const { allKennzahlenBudgets, setAllKennzahlenBudgets, selectedYear, setSelectedYear, selectedDepartment, setSelectedDepartment } =
     useContext(AuthContext);
 
-    const [selectedDepartment, setSelectedDepartment] = useState("Anmietung");
+    // const [selectedDepartment, setSelectedDepartment] = useState("Anmietung");
+    // console.log(selectedDepartment)
 
 
     const onSubmit = (data, month) => {

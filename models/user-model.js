@@ -8,8 +8,21 @@ const userSchema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, select: false },
   department: { type: String, required: true },
-  role: { type: String, enum: ["user", "admin", "accounting"], default: "user" },
-  leadRole: { type: String, enum: ["Anmietung", "Projektbezogene Fremdpersonalkosten", "Fremdpersonalkosten LL", "Projektbezogene Fremdtransportkosten", "Transportkosten/Umschlag"], }
+  role: {
+    type: String,
+    enum: ["user", "admin", "accounting"],
+    default: "user",
+  },
+  leadRole: {
+    type: [String], // Define it as an array of strings
+    enum: [
+      "Anmietung",
+      "Projektbezogene Fremdpersonalkosten",
+      "Fremdpersonalkosten LL",
+      "Projektbezogene Fremdtransportkosten",
+      "Transportkosten/Umschlag",
+    ], // Define the allowed values for the strings in the array
+  },
 });
 
 userSchema.pre("save", async function (next) {
