@@ -9,20 +9,20 @@ export default function Inquiries() {
     selectedYearAdmin,
     setSelectedYearAdmin,
     setStatus,
-    setApprover, 
+    setApprover,
     user,
   } = useContext(AuthContext);
 
   const [selectedStatuses, setSelectedStatuses] = useState([]);
-  const [assignedToMe, setAssignedToMe] = useState(true); 
+  const [assignedToMe, setAssignedToMe] = useState(true);
 
   useEffect(() => {
     setStatus(selectedStatuses.join(","));
-    console.log(user.role)
+    console.log(user.role);
     if (assignedToMe && user.role !== "accounting") {
-      setApprover(user.firstName); 
+      setApprover(user.firstName);
     } else {
-      setApprover(""); 
+      setApprover("");
     }
   }, [selectedStatuses, assignedToMe, setStatus, setApprover, user.firstName]);
 
@@ -58,8 +58,8 @@ export default function Inquiries() {
     <div>
       <div className="flex overflow-hidden bg-white pt-16">
         <Sidebar />
-        <div className="h-[100vh] w-full bg-gray-50 relative overflow-y-auto">
-          <div className="flex flex-col ml-96 w-9/12 gap-4 mt-10">
+        <div className="min-h-screen w-full bg-gray-50 relative">
+          <div className="flex flex-col ml-96 w-9/12 gap-4 mt-10 mb-6">
             <div>
               <label className="text-lg font-semibold leading-tight tracking-tight text-gray-900 dark:text-white mb-4">
                 Kostenanfragen für das Jahr:
@@ -97,8 +97,12 @@ export default function Inquiries() {
                 <input
                   type="checkbox"
                   className="checkbox checkbox-accent"
-                  checked={selectedStatuses.includes("Ja zum späteren Zeitpunkt")}
-                  onChange={() => handleStatusChange("Ja zum späteren Zeitpunkt")}
+                  checked={selectedStatuses.includes(
+                    "Ja zum späteren Zeitpunkt"
+                  )}
+                  onChange={() =>
+                    handleStatusChange("Ja zum späteren Zeitpunkt")
+                  }
                 />
                 <span className="ml-2">Zum späteren Zeitpunkt</span>
               </label>
@@ -120,11 +124,15 @@ export default function Inquiries() {
                 />
                 <span className="ml-2">Abgelehnt</span>
               </label>
-              <label className={user.role !== "accounting" ? "flex items-center" : "hidden"}>
+              <label
+                className={
+                  user.role !== "accounting" ? "flex items-center" : "hidden"
+                }
+              >
                 <input
                   type="checkbox"
                   className="checkbox checkbox-primary"
-                  checked={assignedToMe && user.role !== "accounting"} 
+                  checked={assignedToMe && user.role !== "accounting"}
                   onChange={handleAssignedToMeChange}
                 />
                 <span className="ml-2">Mir zugewiesen</span>

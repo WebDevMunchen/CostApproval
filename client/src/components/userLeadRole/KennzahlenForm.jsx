@@ -2,17 +2,73 @@ import { useNavigate } from "react-router-dom";
 import axiosClient from "../../utils/axiosClient";
 import Sidebar from "../shared/Sidebar";
 import { useForm } from "react-hook-form";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
 import { Bounce, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 export default function KennzahlenForm() {
-  const { setUserKennzahlenInquiries, user } = useContext(AuthContext);
+  const { setUserKennzahlenInquiries, setYearlyUserKennzahlenInquiries, user, selectedYear } = useContext(AuthContext);
 
   const navigate = useNavigate();
 
+  const currentMonthIndex = new Date().getMonth(); // Get current month (0-11)
+  const months = [
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+  ];
+
+  // Calculate the months to show in the select dropdown
+  const options = [];
+
+  // Add the month before the current one if not January
+  if (currentMonthIndex > 0) {
+    options.push(months[currentMonthIndex - 1]);
+  }
+
+  // Add current month and all months to come
+  for (let i = currentMonthIndex; i < 12; i++) {
+    options.push(months[i]);
+  }
+
+  const [selectedMonth, setSelectedMonth] = useState(options[0]);
+
+  console.log(selectedMonth)
+
   const [defaultValueCents, setDefaultValueCents] = useState(0);
+  const [allKennzahlenBudgets, setAllKennzahlenBudgets] = useState(null);
+
+  const modalRefUpdate = useRef(null);
+
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentMonth = currentDate.toLocaleString("default", { month: "long" });
+
+  const selectedDepartment = user?.leadRole;
+
+  useEffect(() => {
+    axiosClient
+      .get(
+        `/budgetKennzahlen/getAllKennzahlenBudgets?year=${currentYear}&department=${selectedDepartment}&month=${selectedMonth}`
+      )
+      .then((response) => {
+        setAllKennzahlenBudgets(response.data);
+        console.log(response.data);
+      })
+      .catch(() => {
+        setAllKennzahlenBudgets(null);
+      });
+  }, [selectedMonth]);
 
   const {
     register,
@@ -21,19 +77,39 @@ export default function KennzahlenForm() {
   } = useForm();
 
   const onSubmit = (data) => {
+    const budgetData = allKennzahlenBudgets[0];
+
+    const formAmount =
+      parseFloat(data.expenseAmount) + parseFloat(data.expenseAmountCent) / 100;
+
+    const usedAmount = budgetData.usedAmount || 0;
+    const totalBudget = budgetData.amount || 0;
+
     axiosClient
-      .post("/kennzahlen/createNewEntry", data)
+      .post("/kennzahlen/createNewEntry", { ...data, formAmount, selectedMonth  })
       .then((response) => {
         return axiosClient.get("/kennzahlen/getAllUserKennzahlenInquiries");
       })
       .then((response) => {
-        setUserKennzahlenInquiries(response.data);
-        notifySuccess()
-        navigate("/kennzahlen/meineAntraege");
+        setUserKennzahlenInquiries(response.data)
+
+        return axiosClient.get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}`)
+      })
+      .then((response) => {
+        setYearlyUserKennzahlenInquiries(response.data)
+
+        notifySuccess();
+        if (formAmount + usedAmount < totalBudget) {
+          navigate("/kennzahlen/meineAntraege");
+        }
       })
       .catch((error) => {
         console.log(error);
       });
+
+    if (formAmount + usedAmount > totalBudget) {
+      modalRefUpdate.current.showModal();
+    }
   };
 
   const notifySuccess = () =>
@@ -50,6 +126,7 @@ export default function KennzahlenForm() {
       className: "mt-14 mr-6",
     });
 
+
   return (
     <div>
       <div className="flex overflow-hidden bg-white pt-16">
@@ -60,8 +137,7 @@ export default function KennzahlenForm() {
               Neuer Kennzahleneintrag:
             </h1>
             <form className="mt-6" onSubmit={handleSubmit(onSubmit)}>
-              <div className="-mx-3 flex flex-wrap">
-
+              <div className="-mx-3 flex  flex-wrap">
                 <div className="w-full px-3 sm:w-1/2">
                   <div className="mb-5">
                     <label
@@ -79,6 +155,26 @@ export default function KennzahlenForm() {
                       placeholder="Gib eine Art der Kosten ein"
                     />
                   </div>
+
+                </div>
+                <div>
+                <label
+                      htmlFor="title"
+                      className="mb-3 block text-base font-medium text-[#07074D]"
+                    >
+                      Monat
+                    </label>
+                <select
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
+                    className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
+                  >
+                    {options.map((month, index) => (
+                      <option key={index} value={month}>
+                        {month}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div className="mb-5">
@@ -133,11 +229,18 @@ export default function KennzahlenForm() {
                       htmlFor="time"
                       className="mb-3 block text-base font-medium text-[#07074D]"
                     >
-                      Bei einer Budgetüberschreitung werden deine Kosten genehmigt von:
+                      Bei einer Budgetüberschreitung werden deine Kosten
+                      genehmigt von:
                     </label>
                     <input
-                    disabled
-                      defaultValue={user.leadRole === "Anmietung" ? "Sandra Bollmann" : user.leadRole === "Fremdpersonalkosten LL" ? "Tobias Viße" : "Ben Cudok"}
+                      disabled
+                      defaultValue={
+                        user.leadRole === "Anmietung"
+                          ? "Sandra Bollmann"
+                          : user.leadRole === "Fremdpersonalkosten LL"
+                          ? "Tobias Viße"
+                          : "Ben Cudok"
+                      }
                       className="w-full rounded-md border border-[#e0e0e0] bg-white py-3 px-3 text-base text-lg font-medium text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
                     />
                   </div>
@@ -213,11 +316,57 @@ export default function KennzahlenForm() {
               </div>
 
               <div>
-                <button className="bg-gradient-to-b from-gray-700 to-gray-900 text-lg font-medium p-2 mt-2 md:pd-2 text-white uppercase w-full rounded cursor-pointer hover:shadow-lg font-medium transition transform hover:-translate-y-0.5">
+                <button
+                  className={
+                      "bg-gradient-to-b from-gray-700 to-gray-900 text-lg font-medium p-2 mt-2 md:pd-2 text-white uppercase w-full rounded cursor-pointer hover:shadow-lg font-medium transition transform hover:-translate-y-0.5"
+                  }
+                >
                   ÜBERMITTELN
                 </button>
               </div>
             </form>
+
+            <dialog
+              ref={modalRefUpdate}
+              className="modal modal-bottom sm:modal-middle"
+            >
+              <div
+                className="modal-box"
+                style={{ width: "100%", maxWidth: "30%" }}
+              >
+                <div
+                  class="flex items-center p-4 mb-4 text-sm text-red-800 border border-red-300 rounded-lg bg-red-50 dark:bg-gray-800 dark:text-red-400 dark:border-red-800"
+                  role="alert"
+                >
+                  <svg
+                    class="flex-shrink-0 inline w-4 h-4 me-3"
+                    aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z" />
+                  </svg>
+                  <span class="sr-only">Info</span>
+                  <div>
+                    <span class="font-medium">Achtung!</span> Mit diesem Eintrag
+                    hast du dein Budgetlimit überschritten. Dieser Eintrag muss
+                    zuerst von deinem Vorgesetzten genehmigt werden. Bitte
+                    beachten, dass du keine weitere Einträge erstellen kannst,
+                    bis alle deine Anfragen genehmigt wurden
+                  </div>
+                </div>
+
+                <div className="modal-action">
+                  <button
+                    onClick={() => navigate("/kennzahlen/meineAntraege")}
+                    className="btn"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </dialog>
           </div>
         </div>
       </div>

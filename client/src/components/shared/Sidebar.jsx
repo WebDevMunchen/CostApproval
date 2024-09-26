@@ -28,7 +28,7 @@ export default function Sidebar() {
   return (
     <aside
       id="sidebar"
-      className="fixed hidden z-20 h-full top-0 left-0 pt-16 flex lg:flex flex-shrink-0 flex-col w-64 transition-width duration-75"
+      className="fixed hidden z-20 h-full top-0 left-0 pt-16 flex lg:flex flex-shrink-0 flex-col w-52 transition-width duration-75"
       aria-label="Sidebar"
     >
       <div className="relative flex-1 flex flex-col min-h-0 border-r border-gray-200 bg-white pt-0">

@@ -45,7 +45,7 @@ const editBudget = asyncWrapper(async (req, res, next) => {
 });
 
 const getAllBudgets = asyncWrapper(async (req, res, next) => {
-  const { year, department } = req.query;
+  const { year, department, month } = req.query;
 
   const query = {};
   if (year) {
@@ -54,6 +54,10 @@ const getAllBudgets = asyncWrapper(async (req, res, next) => {
 
   if (department) {
     query.department = department;
+  }
+
+  if (month) {
+    query.month = month;
   }
 
   const budgets = await BudgetKennzahlen.find(query);

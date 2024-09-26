@@ -326,6 +326,7 @@ export default function AuthProvider({ children }) {
         yearlyUserKennzahlenInquiries,
         titleSearchLeadRole,
         setTitleSearchLeadRole,
+        setYearlyUserKennzahlenInquiries
       }}
     >
       {children}

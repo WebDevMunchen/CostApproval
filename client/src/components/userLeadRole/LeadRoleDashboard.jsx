@@ -1,8 +1,8 @@
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import Sidebar from "../shared/Sidebar";
 import { AuthContext } from "../../context/AuthProvider";
-import { NavLink } from "react-router-dom";
 import Chart from "react-apexcharts";
+import axiosClient from "../../utils/axiosClient";
 
 export default function LeadRoleDashboard() {
   const {
@@ -17,12 +17,12 @@ export default function LeadRoleDashboard() {
     selectedMonth,
     setSelectedMonth,
     allKennzahlenBudgets,
-    allKennzahlenInquiries,
-    yearlyKennzahlenApprovals,
     user,
     userKennzahlenInquiries,
-    yearlyUserKennzahlenInquiries
+    yearlyUserKennzahlenInquiries,
   } = useContext(AuthContext);
+
+  const [overviewUser, setOverviewUser] = useState(null);
 
   useEffect(() => {
     setStatus("");
@@ -31,6 +31,16 @@ export default function LeadRoleDashboard() {
     setTitleSearchAdmin("");
     setTitleSearchLiquidity("");
     setSelectedDepartment(user.leadRole);
+
+    axiosClient
+      .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}`)
+      .then((response) => {
+        setOverviewUser(response.data);
+        console.log(response.data);
+      })
+      .catch(() => {
+        setOverviewUser(null);
+      });
   }, []);
 
   let inquiryCountKennzahlen = 0;
@@ -45,10 +55,10 @@ export default function LeadRoleDashboard() {
 
   const totalApprovedAmount = userKennzahlenInquiries?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
-      // if (status === "Genehmigt") {
-      acc.totalAmount += expenseAmount;
-      acc.totalAmountCents += expenseAmountCent;
-      // }
+      if (status === "Genehmigt" || status === "Innerhalb des Budgets") {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
       return acc;
     },
     { totalAmount: 0, totalAmountCents: 0 }
@@ -73,12 +83,44 @@ export default function LeadRoleDashboard() {
   const differenceInEuros =
     budgetAmount - (adjustedTotalAmount + adjustedTotalAmountCents / 100);
 
-  const totalApprovedForYear = userKennzahlenInquiries?.reduce(
+  const totalCombinedAmount = userKennzahlenInquiries?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
-      // if (status === "Genehmigt") {
-      acc.totalAmount += expenseAmount;
-      acc.totalAmountCents += expenseAmountCent;
-      // }
+      if (
+        status === "Genehmigt" ||
+        status === "Innerhalb des Budgets" ||
+        status === "Neu" ||
+        status === "In Prüfung"
+      ) {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
+      return acc;
+    },
+    { totalAmount: 0, totalAmountCents: 0 }
+  );
+
+  const {
+    totalAmount: totalCombinedTotal,
+    totalAmountCents: totalCombinedCents,
+  } = totalCombinedAmount || {
+    totalAmount: 0,
+    totalAmountCents: 0,
+  };
+
+  const adjustedCombinedAmount =
+    totalCombinedTotal + Math.floor(totalCombinedCents / 100);
+  const adjustedCombinedCents = totalCombinedCents % 100;
+
+  const differenceInCombinedEuros =
+    budgetAmount - (adjustedCombinedAmount + adjustedCombinedCents / 100);
+
+
+  const totalApprovedForYear = overviewUser?.reduce(
+    (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
+      if (status === "Genehmigt" || status === "Innerhalb des Budgets") {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
       return acc;
     },
     { totalAmount: 0, totalAmountCents: 0 }
@@ -99,6 +141,41 @@ export default function LeadRoleDashboard() {
   const differenceInEurosForYear =
     totalBudgetForYear -
     (adjustedYearlyTotalAmount + adjustedYearlyTotalCents / 100);
+
+  const totalApprovedForYearIncludingNewStatuses = overviewUser?.reduce(
+    (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
+      if (
+        status === "Genehmigt" ||
+        status === "Innerhalb des Budgets" ||
+        status === "Neu" ||
+        status === "In Prüfung"
+      ) {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
+      return acc;
+    },
+    { totalAmount: 0, totalAmountCents: 0 }
+  );
+
+  const {
+    totalAmount: totalYearlyAmountIncludingNewStatuses,
+    totalAmountCents: totalYearlyCentsIncludingNewStatuses,
+  } = totalApprovedForYearIncludingNewStatuses || {
+    totalAmount: 0,
+    totalAmountCents: 0,
+  };
+
+  const adjustedYearlyTotalAmountIncludingNewStatuses =
+    totalYearlyAmountIncludingNewStatuses +
+    Math.floor(totalYearlyCentsIncludingNewStatuses / 100);
+  const adjustedYearlyTotalCentsIncludingNewStatuses =
+    totalYearlyCentsIncludingNewStatuses % 100;
+
+  const differenceInEurosForYearIncludingNewStatuses =
+    totalBudgetForYear -
+    (adjustedYearlyTotalAmountIncludingNewStatuses +
+      adjustedYearlyTotalCentsIncludingNewStatuses / 100);
 
   const months = [
     "Januar",
@@ -125,7 +202,38 @@ export default function LeadRoleDashboard() {
         (approval) =>
           approval.year === selectedYear &&
           approval.department === selectedDepartment &&
-          months.indexOf(approval.month) + 1 === monthIndex
+          months.indexOf(approval.month) + 1 === monthIndex &&
+          approval.status === "Innerhalb des Budgets"
+      )
+      .reduce(
+        (acc, { expenseAmount = 0, expenseAmountCent = 0 }) => {
+          acc.totalAmount += expenseAmount;
+          acc.totalAmountCents += expenseAmountCent;
+          return acc;
+        },
+        { totalAmount: 0, totalAmountCents: 0 }
+      );
+
+    const { totalAmount, totalAmountCents } = totalForMonth || {
+      totalAmount: 0,
+      totalAmountCents: 0,
+    };
+    return totalAmount + totalAmountCents / 100;
+  });
+
+  const monthlyApprovedAmountsWithPending = months.map((_, index) => {
+    const monthIndex = index + 1;
+
+    const totalForMonth = yearlyUserKennzahlenInquiries
+      ?.filter(
+        (approval) =>
+          approval.year === selectedYear &&
+          approval.department === selectedDepartment &&
+          months.indexOf(approval.month) + 1 === monthIndex &&
+          (approval.status === "Genehmigt" ||
+            approval.status === "Innerhalb des Budgets" ||
+            approval.status === "Neu" ||
+            approval.status === "In Prüfung")
       )
       .reduce(
         (acc, { expenseAmount = 0, expenseAmountCent = 0 }) => {
@@ -168,12 +276,16 @@ export default function LeadRoleDashboard() {
     },
     series: [
       {
-        name: "Genehmigt",
+        name: "Ausgaben",
         data: monthlyApprovedAmounts,
       },
       {
         name: "Budget",
         data: monthlyBudgets,
+      },
+      {
+        name: "Ausgaben inkl.Ausstehend",
+        data: monthlyApprovedAmountsWithPending,
       },
     ],
     xaxis: {
@@ -241,24 +353,24 @@ export default function LeadRoleDashboard() {
         ></div>
         <div
           id="main-content"
-          className="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-64"
+          className="h-full w-full bg-gray-50 relative overflow-y-auto lg:ml-52"
         >
           <main>
             <div className="py-6 px-4">
               <div className="mb-4 mt-4 w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
-                  <div className="flex items-center justify-between">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:py-8 xl:px-4">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex-shrink-0">
-                      <h3 className="mb-2 px-2 text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Budget für {selectedMonth}:
                       </h3>
 
                       {budgetAmount === 0 ? (
-                        <p className="text-blue-600 hover:text-blue-800 font-semibold text-2xl rounded-lg px-2 transition duration-300 ease-in-out">
+                        <p className="text-blue-600 hover:text-blue-800 font-semibold text-md rounded-lg transition duration-300 ease-in-out">
                           Budget nicht vorhanden
                         </p>
                       ) : (
-                        <span className="px-2 text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                        <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                           {`${budgetAmount.toLocaleString("de-DE", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
@@ -267,26 +379,14 @@ export default function LeadRoleDashboard() {
                       )}
                       <div className="invisible flex items-center text-green-500 text-base font-bold mt-2">
                         14.6%
-                        <svg
-                          className="w-5 h-5 ml-1"
-                          fill="currentColor"
-                          viewBox="0 0 20 20"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M5.293 7.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L6.707 7.707a1 1 0 01-1.414 0z"
-                            clipRule="evenodd"
-                          ></path>
-                        </svg>
                       </div>
                     </div>
 
                     <div className="flex-shrink-0 text-left">
-                      <h3 className="mb-2 text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Bisher ausgegeben:
                       </h3>
-                      <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                         {`${totalAmount.toLocaleString("de-DE")},${
                           totalAmountCents === 0
                             ? "00"
@@ -333,6 +433,63 @@ export default function LeadRoleDashboard() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex-shrink-0 text-left">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
+                        Ausgaben inkl. Ausstehend:
+                      </h3>
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
+                        {`${adjustedCombinedAmount.toLocaleString("de-DE")},${
+                          adjustedCombinedCents === 0
+                            ? "00"
+                            : adjustedCombinedCents.toString().padStart(2, "0")
+                        }€`}
+                      </span>
+                      <div
+                        className={`${
+                          differenceInCombinedEuros >= 0
+                            ? "flex items-center text-green-500 text-base font-bold mt-2"
+                            : "flex items-center text-red-500 text-base font-bold mt-2"
+                        }`}
+                      >
+                        {`${differenceInCombinedEuros.toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
+
+                        {differenceInCombinedEuros >= 0 ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 10.5L12 3m0 0 7.5 7.5M12 3v18"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19.5 13.5L12 21m0 0-7.5-7.5M12 21V3"
                             />
                           </svg>
                         )}
@@ -437,7 +594,8 @@ export default function LeadRoleDashboard() {
                         </span>
                         <span className="text-indigo-900">
                           {userKennzahlenInquiries?.filter(
-                            (approval) => approval.status === "Innerhalb des Budgets"
+                            (approval) =>
+                              approval.status === "Innerhalb des Budgets"
                           ).length || 0}
                         </span>
                         <svg
@@ -454,13 +612,13 @@ export default function LeadRoleDashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:py-8 xl:px-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-shrink-0">
-                      <h3 className="mb-2 text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Gesamtbudget in {selectedYear}:
                       </h3>
-                      <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                         {`${totalBudgetForYear.toLocaleString("de-DE", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -483,10 +641,10 @@ export default function LeadRoleDashboard() {
                     </div>
 
                     <div className="flex-shrink-0 text-left">
-                      <h3 className="mb-2 text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Bisher ausgegeben:
                       </h3>
-                      <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                         {`${(
                           totalYearlyAmount +
                           totalYearlyCents / 100
@@ -497,17 +655,79 @@ export default function LeadRoleDashboard() {
                       </span>
                       <div
                         className={`${
-                          differenceInEurosForYear >= 0
+                          differenceInCombinedEuros >= 0
                             ? "flex items-center text-green-500 text-base font-bold mt-2"
                             : "flex items-center text-red-500 text-base font-bold mt-2"
                         }`}
                       >
-                        {`${differenceInEurosForYear.toLocaleString("de-DE", {
+                        {`${differenceInCombinedEuros.toLocaleString("de-DE", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}€`}
 
-                        {differenceInEurosForYear >= 0 ? (
+                        {differenceInCombinedEuros >= 0 ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex-shrink-0 text-left">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
+                        Ausgaben inkl. Ausstehend:
+                      </h3>
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
+                        {`${(
+                          totalYearlyAmountIncludingNewStatuses +
+                          totalYearlyCentsIncludingNewStatuses / 100
+                        ).toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
+                      </span>
+                      <div
+                        className={`${
+                          differenceInEurosForYearIncludingNewStatuses >= 0
+                            ? "flex items-center text-green-500 text-base font-bold mt-2"
+                            : "flex items-center text-red-500 text-base font-bold mt-2"
+                        }`}
+                      >
+                        {`${differenceInEurosForYearIncludingNewStatuses.toLocaleString(
+                          "de-DE",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}€`}
+
+                        {differenceInEurosForYearIncludingNewStatuses >= 0 ? (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -543,8 +763,8 @@ export default function LeadRoleDashboard() {
                   </div>
                 </div>
               </div>
-              <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-2">
+              <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-5 gap-4">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-3">
                   <div className="flex items-center justify-end mb-4">
                     <div className="flex items-center">
                       <select
@@ -582,7 +802,7 @@ export default function LeadRoleDashboard() {
                     height={450}
                   />
                 </div>
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 ">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-4 2xl:col-span-2">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -605,21 +825,33 @@ export default function LeadRoleDashboard() {
                                 </th>
                                 <th
                                   scope="col"
-                                  className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                  className="p-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
                                 >
                                   Budget
                                 </th>
                                 <th
                                   scope="col"
-                                  className="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                  className="px-3 py-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
                                 >
                                   Bisher ausgegeben
                                 </th>
                                 <th
                                   scope="col"
-                                  className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                  className="p-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
                                 >
-                                  Restbetrag
+                                  Betrag
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="p-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Ausstehende Ausgaben
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="p-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Betrag wenn Freigegeben
                                 </th>
                               </tr>
                             </thead>
@@ -631,10 +863,13 @@ export default function LeadRoleDashboard() {
                                 );
                                 const budgetAmount = budget ? budget.amount : 0;
 
-                                const approved = userKennzahlenInquiries?.filter(
+                                const approved = overviewUser?.filter(
                                   (approval) =>
                                     approval.year === selectedYear &&
-                                    approval.month === month
+                                    approval.month === month &&
+                                    (approval.status ===
+                                      "Innerhalb des Budgets" ||
+                                      approval.status === "Genehmigt")
                                 );
 
                                 let totalApprovedAmount = 0;
@@ -649,12 +884,41 @@ export default function LeadRoleDashboard() {
                                   });
                                 }
 
-                                // Calculate the difference between budget and approved amounts
+                                const pending = overviewUser?.filter(
+                                  (approval) =>
+                                    approval.year === selectedYear &&
+                                    approval.month === month &&
+                                    (approval.status === "In Prufüng" ||
+                                      approval.status === "Neu")
+                                );
+
+                                let totalPendingAmount = 0;
+                                if (pending) {
+                                  pending.forEach((element) => {
+                                    const {
+                                      expenseAmount = 0,
+                                      expenseAmountCent = 0,
+                                    } = element;
+                                    totalPendingAmount +=
+                                      expenseAmount + expenseAmountCent / 100;
+                                  });
+                                }
+
                                 const differenceInEuros =
                                   budgetAmount - totalApprovedAmount;
 
-                                // Format numbers with a dot as thousand separator and comma for decimal
                                 const formatNumber = (number) =>
+                                  new Intl.NumberFormat("de-DE", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }).format(number);
+
+                                const differenceInEurosAfterApprovals =
+                                  budgetAmount -
+                                  totalApprovedAmount -
+                                  totalPendingAmount;
+
+                                const formatNumberPending = (number) =>
                                   new Intl.NumberFormat("de-DE", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
@@ -681,6 +945,23 @@ export default function LeadRoleDashboard() {
                                       }`}
                                     >
                                       {formatNumber(differenceInEuros) + "€"}
+                                    </td>
+                                    <td className="px-4 py-2 text-center whitespace-nowrap text-sm font-semibold text-gray-500">
+                                      {formatNumber(totalPendingAmount) + "€"}
+                                    </td>
+                                    <td
+                                      className={`px-4 py-2 text-center whitespace-nowrap text-sm font-semibold ${
+                                        differenceInEurosAfterApprovals < 0
+                                          ? "text-red-500"
+                                          : differenceInEurosAfterApprovals ===
+                                            0
+                                          ? "text-gray-900"
+                                          : "text-green-500"
+                                      }`}
+                                    >
+                                      {formatNumberPending(
+                                        differenceInEurosAfterApprovals
+                                      ) + "€"}
                                     </td>
                                   </tr>
                                 );

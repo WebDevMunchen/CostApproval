@@ -18,22 +18,43 @@ const createNew = asyncWrapper(async (req, res, next) => {
     expenseAmount,
     expenseAmountCent,
     deadline,
-    status,
+    selectedMonth, // This will be a string (e.g., "Januar")
   } = req.body;
   const { leadRole } = req.user;
 
-  const { currentYear, currentMonth } = getCurrentYearAndMonth();
+  const { currentYear } = getCurrentYearAndMonth();
+
+  // Create a mapping of months (as strings)
+  const months = [
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+  ];
+
+  // Check if selectedMonth is valid
+  if (!months.includes(selectedMonth)) {
+    return next(new ErrorResponse("Invalid month selected.", 400));
+  }
 
   const budget = await BudgetKennzahlen.findOne({
     year: currentYear,
-    month: currentMonth,
+    month: selectedMonth, // Query using the string directly
     department: leadRole,
   });
 
   if (!budget) {
     return next(
       new ErrorResponse(
-        "No matching budget found for the current year, month, and department.",
+        "No matching budget found for the selected year, month, and department.",
         404
       )
     );
@@ -41,6 +62,7 @@ const createNew = asyncWrapper(async (req, res, next) => {
 
   let setApprover = "";
 
+  // Determine the approver based on the lead role
   if (leadRole === "Anmietung") {
     setApprover = "Sandra Bollmann";
   } else if (leadRole === "Fremdpersonalkosten LL") {
@@ -49,31 +71,15 @@ const createNew = asyncWrapper(async (req, res, next) => {
     setApprover = "Ben Cudok";
   }
 
-  const totalUsedAmount = budget.usedAmount + budget.usedAmountCent / 100;
+  let newStatus;
 
-  if (totalUsedAmount > budget.amount) {
-    return next(
-      new ErrorResponse("The expense exceeds the available budget.", 400)
-    );
-  }
-
-  const newEntry = await CostApprovalKennzahlen.create({
-    creator: req.user.id,
-    title,
-    additionalMessage,
-    expenseAmount,
-    expenseAmountCent,
-    approver: setApprover,
-    deadline,
-    status,
-    department: leadRole,
-  });
-
-  let updatedUsedAmount = Number(budget.usedAmount) + Number(expenseAmount); 
-  let updatedUsedAmountCent = Number(budget.usedAmountCent) + Number(expenseAmountCent); 
+  // Update budget amounts
+  let updatedUsedAmount = Number(budget.usedAmount) + Number(expenseAmount);
+  let updatedUsedAmountCent =
+    Number(budget.usedAmountCent) + Number(expenseAmountCent);
 
   if (updatedUsedAmountCent >= 100) {
-    const additionalEuros = Math.floor(updatedUsedAmountCent / 100); 
+    const additionalEuros = Math.floor(updatedUsedAmountCent / 100);
     updatedUsedAmount += additionalEuros;
     updatedUsedAmountCent = updatedUsedAmountCent % 100;
   }
@@ -83,8 +89,28 @@ const createNew = asyncWrapper(async (req, res, next) => {
 
   await budget.save();
 
+  // Determine status based on used amount
+  if (updatedUsedAmount > budget.amount) {
+    newStatus = "Neu";
+  }
+
+  // Create a new cost approval entry
+  const newEntry = await CostApprovalKennzahlen.create({
+    creator: req.user.id,
+    title,
+    additionalMessage,
+    expenseAmount,
+    expenseAmountCent,
+    approver: setApprover,
+    deadline,
+    status: newStatus,
+    department: leadRole,
+    month: selectedMonth, // Save the selected month as a string
+  });
+
   res.json(newEntry);
 });
+
 
 
 

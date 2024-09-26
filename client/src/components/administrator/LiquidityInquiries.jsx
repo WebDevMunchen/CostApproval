@@ -45,8 +45,8 @@ export default function LiquidityInquiries() {
     <div>
       <div className="flex overflow-hidden bg-white pt-16">
         <Sidebar />
-        <div className="h-[100vh] w-full bg-gray-50 relative overflow-y-auto">
-          <div className="flex flex-col ml-96 w-9/12 gap-4 mt-10">
+        <div className="min-h-screen w-full bg-gray-50 relative">
+          <div className="flex flex-col ml-96 w-9/12 gap-4 mt-10 mb-6">
             <div>
               <label className="text-lg font-semibold leading-tight tracking-tight text-gray-900 dark:text-white mb-4">
                 Kostenanfragen mit Liquidität für das Jahr:

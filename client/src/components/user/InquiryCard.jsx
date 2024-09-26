@@ -227,8 +227,8 @@ export default function InquiryCard({ approval }) {
         <div className="collapse-content peer-checked:block">
           <hr />
 
-          <table className="min-w-full divide-y divide-gray-200 overflow-x-auto">
-            <tbody className="bg-white divide-y divide-gray-200">
+          <table className="min-w-full overflow-x-auto">
+            <tbody className="bg-white">
               <tr className="flex justify-between w-full">
                 <td className="flex-1 px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
@@ -445,7 +445,8 @@ export default function InquiryCard({ approval }) {
                         </div>
                       </dialog>
                     </div>
-                  ) : approval.status === "In Prüfung" || approval.liquidityStatus === "In Prüfung" ? (
+                  ) : approval.status === "In Prüfung" ||
+                    approval.liquidityStatus === "In Prüfung" ? (
                     <div className="flex justify-center">
                       <button
                         onClick={() => modalRefUpdate.current.showModal()}
