@@ -72,7 +72,7 @@ export default function Sidebar() {
                     </span>
                   </NavLink>
                 </li>
-                <li className={user.leadRole ? "visible" : "hidden"}>
+                <li className={user.leadRole[0] === "none" ? "hidden" : "visible"}>
                   <NavLink
                     to={"/kennzahlen/meinBudget"}
                     className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
@@ -90,7 +90,7 @@ export default function Sidebar() {
                     </span>
                   </NavLink>
                 </li>
-                <li className={user.leadRole ? "visible" : "hidden"}>
+                <li className={user.leadRole[0] === "none" ? "hidden" : "visible"}>
                   <NavLink
                     to={"/kennzahlen/meineAntraege"}
                     className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "
@@ -109,7 +109,7 @@ export default function Sidebar() {
                     </span>
                   </NavLink>
                 </li>
-                <li className={user.leadRole ? "visible" : "hidden"}>
+                <li className={user.leadRole[0] === "none" ? "hidden" : "visible"}>
                   <NavLink
                     to={"/kennzahlen/neuerAntrag"}
                     className="text-[14px] text-gray-900 font-semibold rounded-lg hover:bg-gray-100 flex items-center p-2 group "

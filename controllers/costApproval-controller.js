@@ -45,12 +45,12 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
   if (approver === "Ben") {
     address = "denis.hadzipasic@partyrent.com";
   } else if (approver === "Tobias") {
-    address = "denis.hadzipasic@partyrent.com";
+    address = "it.muenchen@partyrent.com";
   } else {
-    address = "webdevmuenchen@gmail.com";
+    address = "webdevmunchen@gmail.com";
   }
 
-  const additionalAddress = liquidity ? "denis.hadzipasic@partyrent.com" : "";
+  const additionalAddress = liquidity ? "muenchen.lms@gmail.com" : "";
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -253,13 +253,13 @@ const editApproval = asyncWrapper(async (req, res, next) => {
   if (approval.approver === "Ben") {
     address = "denis.hadzipasic@partyrent.com";
   } else if (approval.approver === "Tobias") {
-    address = "denis.hadzipasic@partyrent.com";
+    address = "it.muenchen@partyrent.com";
   } else {
-    address = "webdevmuenchen@gmail.com";
+    address = "webdevmunchen@gmail.com";
   }
 
   const additionalAddress = approval.liquidity || oldApproval.liquidity
-    ? "webdevmunchen@gmail.com"
+    ? "muenchen.lms@gmail.com"
     : "";
 
   const transporter = nodemailer.createTransport({
@@ -480,13 +480,13 @@ const deleteApproval = asyncWrapper(async (req, res, next) => {
   if (approval.approver === "Ben") {
     address = "denis.hadzipasic@partyrent.com";
   } else if (approval.approver === "Tobias") {
-    address = "denis.hadzipasic@partyrent.com";
+    address = "it.muenchen@partyrent.com";
   } else {
-    address = "webdevmuenchen@gmail.com";
+    address = "webdevmunchen@gmail.com";
   }
 
   const additionalAddress = approval.liquidity
-    ? "denis.hadzipasic@partyrent.com"
+    ? "muenchen.lms@gmail.com"
     : "";
 
   const transporter = nodemailer.createTransport({
@@ -672,13 +672,13 @@ const updateInquiry = asyncWrapper(async (req, res, next) => {
   if (costApproval.approver === "Ben") {
     address = "denis.hadzipasic@partyrent.com";
   } else if (costApproval.approver === "Tobias") {
-    address = "denis.hadzipasic@partyrent.com";
+    address = "it.muenchen@partyrent.com";
   } else {
-    address = "webdevmuenchen@gmail.com";
+    address = "webdevmunchen@gmail.com";
   }
 
   const additionalAddress = costApproval.liquidity
-    ? "webdevmunchen@gmail.com"
+    ? "muenchen.lms@gmail.com"
     : "";
 
   const transporter = nodemailer.createTransport({
@@ -780,8 +780,6 @@ const getSingleApproval = asyncWrapper(async (req, res, next) => {
 const getAllApprovals = asyncWrapper(async (req, res, next) => {
   const { year, status, month, approver, title } = req.query;
   const { id: admin_id } = req.user;
-
-  const user = await User.findById(admin_id);
 
   let query = {};
 

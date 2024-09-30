@@ -21,6 +21,7 @@ const userSchema = new Schema({
       "Fremdpersonalkosten LL",
       "Projektbezogene Fremdtransportkosten",
       "Transportkosten/Umschlag",
+      "none"
     ], // Define the allowed values for the strings in the array
   },
 });

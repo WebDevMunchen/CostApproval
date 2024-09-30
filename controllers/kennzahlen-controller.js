@@ -120,7 +120,9 @@ const createNew = asyncWrapper(async (req, res, next) => {
     expenseAmountCent,
     deadline,
     selectedMonth, // This will be a string (e.g., "Januar")
-    leadRole, // Now passed from the form
+    leadRole,
+    dateRangeStart,
+    dateRangeEnd
   } = req.body;
 
   const { currentYear } = getCurrentYearAndMonth();
@@ -207,7 +209,9 @@ const createNew = asyncWrapper(async (req, res, next) => {
     deadline,
     status: newStatus,
     department: leadRole,
-    month: selectedMonth, // Save the selected month as a string
+    month: selectedMonth,
+    dateRangeStart,
+    dateRangeEnd
   });
 
   res.json(newEntry);

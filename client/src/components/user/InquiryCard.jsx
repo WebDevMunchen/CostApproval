@@ -214,6 +214,9 @@ export default function InquiryCard({ approval }) {
                         >
                           {approval.liquidity === false
                             ? "Nicht benötigt"
+                            : approval.liquidity === true &&
+                              approval.liquidityStatus === "Neu"
+                            ? "Benötigt"
                             : approval.liquidityStatus}
                         </span>
                       </div>

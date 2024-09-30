@@ -27,6 +27,7 @@ export default function LeadRoleDashboard() {
   useEffect(() => {
     setStatus("");
     setSelectedYear(new Date().getFullYear());
+    setSelectedMonth(new Date().toLocaleString("de-DE", { month: "long" }));
     setTitleSearch("");
     setTitleSearchAdmin("");
     setTitleSearchLiquidity("");
@@ -36,7 +37,6 @@ export default function LeadRoleDashboard() {
       .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`)
       .then((response) => {
         setOverviewUser(response.data);
-        console.log(response.data);
       })
       .catch(() => {
         setOverviewUser(null);
@@ -219,8 +219,6 @@ export default function LeadRoleDashboard() {
     };
     return totalAmount + totalAmountCents / 100;
   });
-
-  console.log(monthlyApprovedAmounts)
 
 
   const monthlyApprovedAmountsWithPending = months.map((_, index) => {
@@ -657,17 +655,17 @@ export default function LeadRoleDashboard() {
                       </span>
                       <div
                         className={`${
-                          differenceInCombinedEuros >= 0
+                          differenceInEurosForYear >= 0
                             ? "flex items-center text-green-500 text-base font-bold mt-2"
                             : "flex items-center text-red-500 text-base font-bold mt-2"
                         }`}
                       >
-                        {`${differenceInCombinedEuros.toLocaleString("de-DE", {
+                        {`${differenceInEurosForYear.toLocaleString("de-DE", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}€`}
 
-                        {differenceInCombinedEuros >= 0 ? (
+                        {differenceInEurosForYear >= 0 ? (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -768,11 +766,12 @@ export default function LeadRoleDashboard() {
               <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-5 gap-4">
                 <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-3">
                   <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
+                  <div className={user.leadRole.length <= 1 ? "invisible" : "flex items-center"}>
                       <select
                         value={selectedDepartment}
                         onChange={(e) => setSelectedDepartment(e.target.value)}
                         className="border-gray-300 border-2 p-2 rounded-md "
+                        
                       >
                         {user.leadRole.map((dep) => (
                           <option key={dep} value={dep}>

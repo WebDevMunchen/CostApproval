@@ -4,13 +4,23 @@ import { AuthContext } from "../../context/AuthProvider";
 import KennzahlEntryCard from "./KennzahlEntryCard";
 
 export default function MyKennzahlenEntries() {
-  const { userKennzahlenInquiries, setStatus, setTitleSearch, setSelectedYear, selectedYear } = useContext(AuthContext);
+  const {
+    userKennzahlenInquiries,
+    setStatus,
+    setTitleSearch,
+    setSelectedYear,
+    selectedYear,
+    setSelectedMonth,
+    selectedDepartment,
+    setSelectedDepartment,
+    user,
+  } = useContext(AuthContext);
 
   const [selectedStatuses, setSelectedStatuses] = useState([]);
 
   useEffect(() => {
     setStatus(selectedStatuses.join(","));
-
+    setSelectedMonth("");
   }, [selectedStatuses, setStatus]);
 
   const handleStatusChange = (status) => {
@@ -18,8 +28,8 @@ export default function MyKennzahlenEntries() {
       prev.includes(status)
         ? prev.filter((s) => s !== status)
         : [...prev, status]
-    )
-    setTitleSearch("")
+    );
+    setTitleSearch("");
   };
 
   const handleYearChange = (e) => {
@@ -44,21 +54,43 @@ export default function MyKennzahlenEntries() {
         <Sidebar />
         <div className="min-h-screen w-full bg-gray-50 relative">
           <div className="flex flex-col ml-96 w-9/12 gap-4 mt-10 mb-6">
-          <div>
-              <label className="text-lg font-semibold leading-tight tracking-tight text-gray-900 dark:text-white mb-4">
-                Deine Kostenanfragen für das Jahr:
-                <select
-                  value={selectedYear}
-                  onChange={handleYearChange}
-                  className="border-gray-200 border-2 p-1 rounded-md ml-2 hover:cursor-pointer"
-                >
-                  <option value="2026">2026</option>
-                  <option value="2025">2025</option>
-                  <option value="2024">2024</option>
-                </select>
-              </label>
+            <div className="flex justify-between">
+              <div>
+                <label className="text-lg font-semibold leading-tight tracking-tight text-gray-900 dark:text-white mb-4">
+                  Deine Kostenanfragen für das Jahr:
+                  <select
+                    value={selectedYear}
+                    onChange={handleYearChange}
+                    className="border-gray-200 border-2 p-1 rounded-md ml-2 hover:cursor-pointer"
+                  >
+                    <option value="2026">2026</option>
+                    <option value="2025">2025</option>
+                    <option value="2024">2024</option>
+                  </select>
+                </label>
+              </div>
+
+              <div
+                className={user.leadRole.length <= 1 ? "invisible" : "visible"}
+              >
+                <label className="text-lg font-semibold leading-tight tracking-tight text-gray-900 dark:text-white mb-4">
+                  Abteilung:
+                  <select
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
+                    className="border-gray-200 border-2 p-1 rounded-md ml-2 hover:cursor-pointer"
+                  >
+                    {user.leadRole.map((dep) => (
+                      <option key={dep} value={dep}>
+                        {dep}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
             </div>
-          <div className="font-semibold flex gap-2 items-center mb-2">
+
+            <div className="font-semibold flex gap-2 items-center mb-2">
               <label className="flex items-center">
                 <input
                   type="checkbox"
@@ -109,7 +141,9 @@ export default function MyKennzahlenEntries() {
               <p>Loading...</p>
             ) : (
               sortApprovals(userKennzahlenInquiries).map((approval) => {
-                return <KennzahlEntryCard key={approval._id} approval={approval} />;
+                return (
+                  <KennzahlEntryCard key={approval._id} approval={approval} />
+                );
               })
             )}
           </div>

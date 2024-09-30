@@ -26,7 +26,9 @@ export default function AuthProvider({ children }) {
   const [selectedMonth, setSelectedMonth] = useState(
     new Date().toLocaleString("de-DE", { month: "long" })
   );
-  const [selectedDepartment, setSelectedDepartment] = useState(user?.leadRole[0] || ""); // Init
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    user?.leadRole[0] || ""
+  );
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [selectedMonthAdmin, setSelectedMonthAdmin] = useState("");
   const [selectedYearAdmin, setSelectedYearAdmin] = useState(
@@ -39,8 +41,6 @@ export default function AuthProvider({ children }) {
   const [titleSearchAdmin, setTitleSearchAdmin] = useState("");
   const [titleSearchLiquidity, setTitleSearchLiquidity] = useState("");
   const [titleSearchLeadRole, setTitleSearchLeadRole] = useState("");
-
-console.log(selectedDepartment)
 
   useEffect(() => {
     axiosClient
@@ -60,7 +60,6 @@ console.log(selectedDepartment)
   }, []);
 
   useEffect(() => {
-    // Only set the selectedDepartment if it's still empty
     if (!selectedDepartment && user?.leadRole?.length > 0) {
       setSelectedDepartment(user.leadRole[0]);
     }
@@ -184,7 +183,6 @@ console.log(selectedDepartment)
         .get(`/kennzahlen/getAllKennzahlenInquiries?year=${selectedYear}`)
         .then((response) => {
           setYearlyKennzahlenApprovals(response.data);
-          console.log(response.data);
         })
         .catch(() => {
           setAllKennzahlenInquiries(null);
@@ -199,10 +197,7 @@ console.log(selectedDepartment)
         )
 
         .then((response) => {
-        console.log(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&month=${selectedMonth}&status=${status}&title=${titleSearchLeadRole}&department=${selectedDepartment}`)
-
           setUserKennzahlenInquiries(response.data);
-          console.log(response.data);
         })
         .catch(() => {
           setUserKennzahlenInquiries(null);
@@ -212,10 +207,11 @@ console.log(selectedDepartment)
         });
 
       axiosClient
-        .get(`/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`)
+        .get(
+          `/kennzahlen/getAllUserKennzahlenInquiries?year=${selectedYear}&department=${selectedDepartment}`
+        )
         .then((response) => {
           setYearlyUserKennzahlenInquiries(response.data);
-          console.log(response.data);
         })
         .catch(() => {
           setYearlyUserKennzahlenInquiries(null);
@@ -338,7 +334,7 @@ console.log(selectedDepartment)
         yearlyUserKennzahlenInquiries,
         titleSearchLeadRole,
         setTitleSearchLeadRole,
-        setYearlyUserKennzahlenInquiries
+        setYearlyUserKennzahlenInquiries,
       }}
     >
       {children}

@@ -64,6 +64,8 @@ const costApprovalKennzahlenSchema = new Schema({
 
   year: { type: Number, default: getCurrentYear },
   month: { type: String, default: getCurrentMonth },
+  dateRangeStart: {type: Date, required: true},
+  dateRangeEnd: {type: Date, required: true}
 });
 
 const CostApprovalKennzahlen = model(
