@@ -171,6 +171,7 @@ export default function AuthProvider({ children }) {
         )
         .then((response) => {
           setAllKennzahlenInquiries(response.data);
+          console.log(response.data)
         })
         .catch(() => {
           setAllKennzahlenInquiries(null);

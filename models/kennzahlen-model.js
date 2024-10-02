@@ -26,11 +26,8 @@ const updateSchema = new Schema({
   sendersFirstName: { type: String },
   sendersLastName: { type: String },
   sendersAbbreviation: { type: String },
-  liquidityDeclineReason: { type: String },
-  liquidityPendingReason: { type: String },
   declineReason: { type: String },
   pendingReason: { type: String },
-  postponeReason: { type: String },
   updateMessage: { type: String },
 });
 

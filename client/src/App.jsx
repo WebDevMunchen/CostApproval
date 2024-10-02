@@ -16,6 +16,7 @@ import AdminDashboardKennzahlen from "./components/administrator/AdminDashboardK
 import KennzahlenForm from "./components/userLeadRole/KennzahlenForm";
 import MyKennzahlenEntries from "./components/userLeadRole/MyKennzahlenEntries";
 import LeadRoleDashboard from "./components/userLeadRole/LeadRoleDashboard";
+import KennzahlenEntriesAdmin from "./components/administrator/KennzahlenEntriesAdmin";
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
             <Route path="budgetVerwaltenIntern" element={<BudgetIntern />} />
             <Route path="budgetVerwaltenKennzahlen" element={<BudgetKennzahlen />} />
             <Route path="kostenanfragen" element={<Inquiries />} />
+            <Route path="kennzahlenAnfragen" element={<KennzahlenEntriesAdmin />} />
             <Route path="liquidity" element={<LiquidityInquiries />} />
           </Route>
         </Route>
