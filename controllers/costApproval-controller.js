@@ -72,12 +72,6 @@ const createNewApproval = asyncWrapper(async (req, res, next) => {
     <p>Es gibt eine neue Anfrage zur Kostenfreigabe:</p>
     <p><strong>Bitte beachten, ob bei dieser Anfrage zunächst die Liquidität durch die Buchhaltung geprüft werden muss!</strong></p>
     <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-      <thead>
-        <tr>
-          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;">Feld</th>
-          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;">Wert</th>
-        </tr>
-      </thead>
       <tbody>
         <tr>
           <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Ersteller</td>
@@ -258,9 +252,8 @@ const editApproval = asyncWrapper(async (req, res, next) => {
     address = "webdevmunchen@gmail.com";
   }
 
-  const additionalAddress = approval.liquidity || oldApproval.liquidity
-    ? "muenchen.lms@gmail.com"
-    : "";
+  const additionalAddress =
+    approval.liquidity || oldApproval.liquidity ? "muenchen.lms@gmail.com" : "";
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -380,9 +373,7 @@ const editApproval = asyncWrapper(async (req, res, next) => {
             oldApproval.additionalMessage !== approval.additionalMessage
               ? "text-decoration: line-through;"
               : ""
-          }" colspan="2">${
-            oldApproval.additionalMessage
-          }</td>
+          }" colspan="2">${oldApproval.additionalMessage}</td>
         </tr>
       </tbody>
     </table>
@@ -485,9 +476,7 @@ const deleteApproval = asyncWrapper(async (req, res, next) => {
     address = "webdevmunchen@gmail.com";
   }
 
-  const additionalAddress = approval.liquidity
-    ? "muenchen.lms@gmail.com"
-    : "";
+  const additionalAddress = approval.liquidity ? "muenchen.lms@gmail.com" : "";
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -848,7 +837,7 @@ const approveInquiry = asyncWrapper(async (req, res, next) => {
     return res.status(404).json({ error: "User not found." });
   }
 
-  const costApproval = await CostApproval.findById(id);
+  const costApproval = await CostApproval.findById(id).populate("creator");
   if (!costApproval) {
     return res.status(404).json({ error: "Cost approval not found." });
   }
@@ -856,16 +845,148 @@ const approveInquiry = asyncWrapper(async (req, res, next) => {
   const currentTime = new Date();
   currentTime.setHours(currentTime.getHours() + 2);
 
+  // Update the status and last update
+  const previousStatus = costApproval.status;
   costApproval.status = status;
   costApproval.lastUpdate.push({
     message,
     date: currentTime,
     sendersFirstName: user.firstName,
     sendersLastName: user.lastName,
-    sendersAbbreviation: user.sendersAbbreviation,
+    sendersAbbreviation: user.abbreviation,
   });
 
+  if (previousStatus === "Ja zum späteren Zeitpunkt") {
+    const getCurrentMonth = () => {
+      const monthNames = [
+        "Januar",
+        "Februar",
+        "März",
+        "April",
+        "Mai",
+        "Juni",
+        "Juli",
+        "August",
+        "September",
+        "Oktober",
+        "November",
+        "Dezember",
+      ];
+      return monthNames[new Date().getMonth()];
+    };
+
+    costApproval.month = getCurrentMonth();
+  }
+
   const updatedApproval = await costApproval.save();
+
+  const creatorEmail = costApproval.creator.email;
+
+  const formattedCents = costApproval.expenseAmountCent
+    .toString()
+    .padStart(2, "0");
+  const formattedAmount = `${costApproval.expenseAmount},${formattedCents} €`;
+  const formattedDeadline = new Date(costApproval.deadline).toLocaleDateString(
+    "de-DE"
+  );
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+
+  const commonHtmlContent = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+    <p>${user.firstName} ${user.lastName} hat deine Anfrage zur Kostenfreigabe 
+  <b><span style="color: green;">genehmigt</span></b>:
+</p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <tbody>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Art der Kosten</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.typeOfExpense}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Titel</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${costApproval.title}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Welche Kosten entstehen?</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${formattedAmount}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Fälligkeitsdatum</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedDeadline}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Priorität</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.priority}</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;" colspan="2">Was wird benötigt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${costApproval.additionalMessage}</td>
+        </tr>
+      </tbody>
+    </table>
+        <br />
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+      <tr>
+        <td align="center" bgcolor="#1d4ed8" style="
+          padding: 12px 24px;
+          background-color: #1d4ed8;
+        ">
+          <a 
+            href="http://localhost:5173/admin/dashboard" 
+            target="_blank" 
+            style="
+              font-size: 16px;
+              font-weight: bold;
+              color: #ffffff;
+              text-decoration: none;
+              text-transform: uppercase;
+              display: inline-block;
+            "
+          >
+            Zur Kostenfreigabe
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+
+  const primaryMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: creatorEmail,
+    subject: "Kostenfreigabetool - Rent.Group München ",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  transporter.sendMail(primaryMailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending primary email:", error);
+    } else {
+      console.log("Primary email sent:", info.response);
+    }
+  });
 
   res.status(200).json(updatedApproval);
 });
@@ -884,7 +1005,7 @@ const declineInquiry = asyncWrapper(async (req, res, next) => {
     return res.status(404).json({ error: "User not found." });
   }
 
-  const costApproval = await CostApproval.findById(id);
+  const costApproval = await CostApproval.findById(id).populate("creator");
   if (!costApproval) {
     return res.status(404).json({ error: "Cost approval not found." });
   }
@@ -904,6 +1025,120 @@ const declineInquiry = asyncWrapper(async (req, res, next) => {
 
   const updatedApproval = await costApproval.save();
 
+  const creatorEmail = costApproval.creator.email;
+
+  const formattedCents = costApproval.expenseAmountCent
+    .toString()
+    .padStart(2, "0");
+  const formattedAmount = `${costApproval.expenseAmount},${formattedCents} €`;
+  const formattedDeadline = new Date(costApproval.deadline).toLocaleDateString(
+    "de-DE"
+  );
+
+  const recentUpdate =
+    costApproval.lastUpdate[costApproval.lastUpdate.length - 1];
+  const formattedDeclineReason =
+    recentUpdate.declineReason || "Kein Grund angegeben";
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+
+  const commonHtmlContent = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+<p>${user.firstName} ${user.lastName} hat deine Anfrage zur Kostenfreigabe 
+  <b><span style="color: red;">abgelehnt</span></b>:
+</p>
+<p><b>Begründung:</b> ${formattedDeclineReason}</p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <tbody>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Art der Kosten</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.typeOfExpense}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Titel</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${costApproval.title}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Welche Kosten entstehen?</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${formattedAmount}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Fälligkeitsdatum</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedDeadline}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Priorität</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.priority}</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;" colspan="2">Was wird benötigt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${costApproval.additionalMessage}</td>
+        </tr>
+      </tbody>
+    </table>
+        <br />
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+      <tr>
+        <td align="center" bgcolor="#1d4ed8" style="
+          padding: 12px 24px;
+          background-color: #1d4ed8;
+        ">
+          <a 
+            href="http://localhost:5173/admin/dashboard" 
+            target="_blank" 
+            style="
+              font-size: 16px;
+              font-weight: bold;
+              color: #ffffff;
+              text-decoration: none;
+              text-transform: uppercase;
+              display: inline-block;
+            "
+          >
+            Zur Kostenfreigabe
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+
+  const primaryMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: creatorEmail,
+    subject: "Kostenfreigabetool - Rent.Group München ",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  transporter.sendMail(primaryMailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending primary email:", error);
+    } else {
+      console.log("Primary email sent:", info.response);
+    }
+  });
+
   res.status(200).json(updatedApproval);
 });
 
@@ -921,7 +1156,7 @@ const setPending = asyncWrapper(async (req, res, next) => {
     return res.status(404).json({ error: "User not found." });
   }
 
-  const costApproval = await CostApproval.findById(id);
+  const costApproval = await CostApproval.findById(id).populate("creator");
   if (!costApproval) {
     return res.status(404).json({ error: "Cost approval not found." });
   }
@@ -941,6 +1176,123 @@ const setPending = asyncWrapper(async (req, res, next) => {
 
   const updatedApproval = await costApproval.save();
 
+  const creatorEmail = costApproval.creator.email;
+
+  const formattedCents = costApproval.expenseAmountCent
+    .toString()
+    .padStart(2, "0");
+  const formattedAmount = `${costApproval.expenseAmount},${formattedCents} €`;
+  const formattedDeadline = new Date(costApproval.deadline).toLocaleDateString(
+    "de-DE"
+  );
+
+  const recentUpdate =
+    costApproval.lastUpdate[costApproval.lastUpdate.length - 1];
+  const formattedPendingReason =
+    recentUpdate.pendingReason || "Kein Grund angegeben";
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+
+  const commonHtmlContent = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <p>
+    ${user.firstName} ${user.lastName} hat deine Anfrage zur Kostenfreigabe in 
+    <b><span style="color: orange;">"In Prüfung"</span></b> geändert:
+  </p>
+  <p>
+    <b>Begründung:</b> ${formattedPendingReason}
+  </p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <tbody>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Art der Kosten</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.typeOfExpense}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Titel</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${costApproval.title}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Welche Kosten entstehen?</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${formattedAmount}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Fälligkeitsdatum</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedDeadline}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Priorität</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.priority}</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;" colspan="2">Was wird benötigt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${costApproval.additionalMessage}</td>
+        </tr>
+      </tbody>
+    </table>
+        <br />
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+      <tr>
+        <td align="center" bgcolor="#1d4ed8" style="
+          padding: 12px 24px;
+          background-color: #1d4ed8;
+        ">
+          <a 
+            href="http://localhost:5173/admin/dashboard" 
+            target="_blank" 
+            style="
+              font-size: 16px;
+              font-weight: bold;
+              color: #ffffff;
+              text-decoration: none;
+              text-transform: uppercase;
+              display: inline-block;
+            "
+          >
+            Zur Kostenfreigabe
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+
+  const primaryMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: creatorEmail,
+    subject: "Kostenfreigabetool - Rent.Group München ",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  transporter.sendMail(primaryMailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending primary email:", error);
+    } else {
+      console.log("Primary email sent:", info.response);
+    }
+  });
+
   res.status(200).json(updatedApproval);
 });
 
@@ -958,7 +1310,7 @@ const postponeInquiry = asyncWrapper(async (req, res, next) => {
     return res.status(404).json({ error: "User not found." });
   }
 
-  const costApproval = await CostApproval.findById(id);
+  const costApproval = await CostApproval.findById(id).populate("creator");
   if (!costApproval) {
     return res.status(404).json({ error: "Cost approval not found." });
   }
@@ -976,9 +1328,124 @@ const postponeInquiry = asyncWrapper(async (req, res, next) => {
     sendersAbbreviation: user.abbreviation,
   });
 
-  console.log(postponeReason);
-
   const updatedApproval = await costApproval.save();
+
+  const creatorEmail = costApproval.creator.email;
+
+  const formattedCents = costApproval.expenseAmountCent
+    .toString()
+    .padStart(2, "0");
+  const formattedAmount = `${costApproval.expenseAmount},${formattedCents} €`;
+  const formattedDeadline = new Date(costApproval.deadline).toLocaleDateString(
+    "de-DE"
+  );
+
+  const recentUpdate =
+    costApproval.lastUpdate[costApproval.lastUpdate.length - 1];
+  const formattedPostponedReason =
+    recentUpdate.postponeReason || "Kein Grund angegeben";
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.USER,
+      pass: process.env.APP_PASSWORD,
+    },
+  });
+
+  const commonHtmlContent = `
+  <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+  <p>
+    ${user.firstName} ${user.lastName} hat deine Anfrage zur Kostenfreigabe in 
+    <b><span style="color: purple;">"Ja zum späteren Zeitpunkt"</span></b> geändert:
+  </p>
+  <p>
+    <b>Begründung:</b> ${formattedPostponedReason}
+  </p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <tbody>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Art der Kosten</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.typeOfExpense}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Titel</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${costApproval.title}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Welche Kosten entstehen?</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${formattedAmount}</td>
+        </tr>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px; font-weight: bold;">Fälligkeitsdatum</td>
+          <td style="border: 1px solid #ddd; padding: 8px;">${formattedDeadline}</td>
+        </tr>
+        <tr>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; font-weight: bold;">Priorität</td>
+          <td style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px;">${costApproval.priority}</td>
+        </tr>
+
+      </tbody>
+    </table>
+    <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+      <thead>
+        <tr>
+          <th style="background-color: #f4f4f4; border: 1px solid #ddd; padding: 8px; text-align: left;" colspan="2">Was wird benötigt</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="border: 1px solid #ddd; padding: 8px;" colspan="2">${costApproval.additionalMessage}</td>
+        </tr>
+      </tbody>
+    </table>
+        <br />
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+      <tr>
+        <td align="center" bgcolor="#1d4ed8" style="
+          padding: 12px 24px;
+          background-color: #1d4ed8;
+        ">
+          <a 
+            href="http://localhost:5173/admin/dashboard" 
+            target="_blank" 
+            style="
+              font-size: 16px;
+              font-weight: bold;
+              color: #ffffff;
+              text-decoration: none;
+              text-transform: uppercase;
+              display: inline-block;
+            "
+          >
+            Zur Kostenfreigabe
+          </a>
+        </td>
+      </tr>
+    </table>
+  </div>`;
+
+  const primaryMailOptions = {
+    from: {
+      name: "Kostenfreigabetool - Rent.Group München - No reply",
+      address: process.env.USER,
+    },
+    to: creatorEmail,
+    subject: "Kostenfreigabetool - Rent.Group München ",
+    text: "Kostenfreigabetool - Rent.Group München",
+    html: commonHtmlContent,
+  };
+
+  transporter.sendMail(primaryMailOptions, (error, info) => {
+    if (error) {
+      console.error("Error sending primary email:", error);
+    } else {
+      console.log("Primary email sent:", info.response);
+    }
+  });
 
   res.status(200).json(updatedApproval);
 });
@@ -1109,5 +1576,5 @@ module.exports = {
   setPending,
   setLiquidityPending,
   postponeInquiry,
-  updateInquiry
+  updateInquiry,
 };

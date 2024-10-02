@@ -1,7 +1,10 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { AuthContext } from "../../context/AuthProvider";
 
 const BudgetCardKennzahlen = ({ month, budget, selectedYear, onSubmit, onCreate }) => {
+  const { user } = useContext(AuthContext);
+
   const [defaultAmount, setDefaultAmount] = useState("");
   const {
     register,
@@ -50,6 +53,8 @@ const BudgetCardKennzahlen = ({ month, budget, selectedYear, onSubmit, onCreate 
         </label>
         <input
           type="number"
+          disabled={user.role !== "accounting"}
+
           {...register("amount", { required: true })}
           id={`amount-${month}`}
           className={`w-3/5 rounded-md border ${
@@ -70,7 +75,9 @@ const BudgetCardKennzahlen = ({ month, budget, selectedYear, onSubmit, onCreate 
       <div className="mt-auto mx-auto">
         <button
           type="submit"
-          className={`text-sm font-medium p-2 text-white uppercase w-full rounded cursor-pointer hover:shadow-lg transition transform hover:-translate-y-0.5 ${
+          disabled={user.role !== "accounting"}
+          className={user.role !== "accounting" ? `bg-gradient-to-b from-slate-500 to-gray-600 text-sm font-medium p-2 text-white uppercase w-full rounded hover:cursor-not-allowed` : `text-sm font-medium p-2 text-white uppercase w-full rounded cursor-pointer hover:shadow-lg transition transform hover:-translate-y-0.5 ${
+
             budget
               ? "bg-gradient-to-b from-gray-700 to-gray-900"
               : "bg-gradient-to-b from-blue-700 to-blue-900"

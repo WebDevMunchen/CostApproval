@@ -16,7 +16,7 @@ export default function AdminDashboard() {
     setStatus,
     setTitleSearch,
     setTitleSearchAdmin,
-    setTitleSearchLiquidity
+    setTitleSearchLiquidity,
   } = useContext(AuthContext);
 
   useEffect(() => {

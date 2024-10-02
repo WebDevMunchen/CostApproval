@@ -203,7 +203,9 @@ export default function LeadRoleDashboard() {
           approval.year === selectedYear &&
           approval.department === selectedDepartment &&
           months.indexOf(approval.month) + 1 === monthIndex &&
-          approval.status === "Innerhalb des Budgets"
+          (
+          approval.status === "Innerhalb des Budgets" ||
+          approval.status === "Genehmigt")
       )
       .reduce(
         (acc, { expenseAmount = 0, expenseAmountCent = 0 }) => {

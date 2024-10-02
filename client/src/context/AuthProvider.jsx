@@ -335,6 +335,8 @@ export default function AuthProvider({ children }) {
         titleSearchLeadRole,
         setTitleSearchLeadRole,
         setYearlyUserKennzahlenInquiries,
+        setAllApprovals,
+        setYearlyApprovals
       }}
     >
       {children}

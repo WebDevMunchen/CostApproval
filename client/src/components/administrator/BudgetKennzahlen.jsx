@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Sidebar from "../shared/Sidebar";
 import axiosClient from "../../utils/axiosClient";
 import { AuthContext } from "../../context/AuthProvider";
@@ -8,26 +8,39 @@ import { NavLink } from "react-router-dom";
 import BudgetCardKennzahlen from "./BudgetCardKennzahlen";
 
 export default function BudgetKennzahlen() {
-  const { allKennzahlenBudgets, setAllKennzahlenBudgets, selectedYear, setSelectedYear, selectedDepartment, setSelectedDepartment } =
-    useContext(AuthContext);
+  const {
+    allKennzahlenBudgets,
+    setAllKennzahlenBudgets,
+    selectedYear,
+    setSelectedYear,
+    selectedDepartment,
+    setSelectedDepartment,
+  } = useContext(AuthContext);
 
-    // const [selectedDepartment, setSelectedDepartment] = useState("Anmietung");
-    // console.log(selectedDepartment)
+  useEffect(() => {
+    setSelectedDepartment("Anmietung");
+  }, []);
 
-
-    const onSubmit = (data, month) => {
-    const budget = allKennzahlenBudgets.find((b) => b.month === month && b.department === selectedDepartment);
+  const onSubmit = (data, month) => {
+    const budget = allKennzahlenBudgets.find(
+      (b) => b.month === month && b.department === selectedDepartment
+    );
     if (budget) {
       const updatedData = {
         amount: data.amount || "",
         year: selectedYear,
-        department: selectedDepartment
+        department: selectedDepartment,
       };
 
       axiosClient
-        .put(`/budgetKennzahlen/editKennzahlenBudget/${budget._id}`, updatedData)
+        .put(
+          `/budgetKennzahlen/editKennzahlenBudget/${budget._id}`,
+          updatedData
+        )
         .then((response) => {
-          return axiosClient.get(`/budgetKennzahlen/getAllKennzahlenBudgets?year=${selectedYear}`);
+          return axiosClient.get(
+            `/budgetKennzahlen/getAllKennzahlenBudgets?year=${selectedYear}`
+          );
         })
         .then((response) => {
           setAllKennzahlenBudgets(response.data);
@@ -43,13 +56,18 @@ export default function BudgetKennzahlen() {
     const newBudgetData = {
       amount: data.amount || "",
       year: selectedYear,
-      department: selectedDepartment
+      department: selectedDepartment,
     };
 
     axiosClient
-      .post(`/budgetKennzahlen/createKennzahlenBudget`, { ...newBudgetData, month })
+      .post(`/budgetKennzahlen/createKennzahlenBudget`, {
+        ...newBudgetData,
+        month,
+      })
       .then((response) => {
-        return axiosClient.get(`/budgetKennzahlen/getAllKennzahlenBudgets?year=${selectedYear}`);
+        return axiosClient.get(
+          `/budgetKennzahlen/getAllKennzahlenBudgets?year=${selectedYear}`
+        );
       })
       .then((response) => {
         setAllKennzahlenBudgets(response.data);
@@ -59,7 +77,13 @@ export default function BudgetKennzahlen() {
         console.log("Error creating budget:", error);
       });
   };
-  const departments = ["Anmietung", "Projektbezogene Fremdpersonalkosten", "Fremdpersonalkosten LL", "Projektbezogene Fremdtransportkosten", "Transportkosten/Umschlag"];
+  const departments = [
+    "Anmietung",
+    "Projektbezogene Fremdpersonalkosten",
+    "Fremdpersonalkosten LL",
+    "Projektbezogene Fremdtransportkosten",
+    "Transportkosten/Umschlag",
+  ];
 
   const months = [
     "Januar",
@@ -134,7 +158,10 @@ export default function BudgetKennzahlen() {
                   ))}
                 </select>
 
-                <label htmlFor="department" className="block text-sm font-medium text-[#07074D]">
+                <label
+                  htmlFor="department"
+                  className="block text-sm font-medium text-[#07074D]"
+                >
                   Abteilung:
                 </label>
                 <select
@@ -144,7 +171,9 @@ export default function BudgetKennzahlen() {
                   className="w-fit rounded-md border border-[#e0e0e0] bg-white py-2 px-3 text-sm text-[#6B7280] outline-none focus:border-[#6A64F1] focus:shadow-md"
                 >
                   {departments.map((department) => (
-                    <option key={department} value={department}>{department}</option>
+                    <option key={department} value={department}>
+                      {department}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -169,12 +198,16 @@ export default function BudgetKennzahlen() {
               </div>
             </div>
             <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white mb-4">
-            Budget für das Jahr {selectedYear} in die {selectedDepartment}-Abteilung:
+              Budget für das Jahr {selectedYear} in die {selectedDepartment}
+              -Abteilung:
             </h1>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {months.map((month) => {
-                const budget = allKennzahlenBudgets?.find((b) => b.month === month && b.department === selectedDepartment);
+                const budget = allKennzahlenBudgets?.find(
+                  (b) =>
+                    b.month === month && b.department === selectedDepartment
+                );
 
                 return (
                   <BudgetCardKennzahlen

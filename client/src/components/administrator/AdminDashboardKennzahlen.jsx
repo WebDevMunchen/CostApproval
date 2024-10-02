@@ -27,12 +27,16 @@ export default function AdminDashboardKennzahlen() {
     setTitleSearch("");
     setTitleSearchAdmin("");
     setTitleSearchLiquidity("");
+    setSelectedDepartment("Anmietung");
   }, []);
 
   let inquiryCountKennzahlen = 0;
 
   allKennzahlenInquiries?.forEach((element) => {
-    if (element.status !== "Innerhalb des Budgets") {
+    if (
+      element.department === selectedDepartment &&
+      element.month === selectedMonth
+    ) {
       inquiryCountKennzahlen++;
     } else {
       return;
@@ -40,11 +44,14 @@ export default function AdminDashboardKennzahlen() {
   });
 
   const totalApprovedAmount = allKennzahlenInquiries?.reduce(
-    (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
-      // if (status === "Genehmigt") {
-      acc.totalAmount += expenseAmount;
-      acc.totalAmountCents += expenseAmountCent;
-      // }
+    (acc, { expenseAmount = 0, expenseAmountCent = 0, status, month }) => {
+      if (
+        (status === "Genehmigt" || status === "Innerhalb des Budgets") &&
+        month === selectedMonth
+      ) {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
       return acc;
     },
     { totalAmount: 0, totalAmountCents: 0 }
@@ -58,6 +65,32 @@ export default function AdminDashboardKennzahlen() {
   const adjustedTotalAmount = totalAmount + Math.floor(totalAmountCents / 100);
   const adjustedTotalAmountCents = totalAmountCents % 100;
 
+  const totalCombinedAmount = allKennzahlenInquiries?.reduce(
+    (acc, { expenseAmount = 0, expenseAmountCent = 0, status, month }) => {
+      if (
+        (status === "Neu" || status === "In Prüfung") &&
+        month === selectedMonth
+      ) {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
+      return acc;
+    },
+    { totalAmount: 0, totalAmountCents: 0 }
+  );
+
+  const {
+    totalAmount: totalCombinedTotal,
+    totalAmountCents: totalCombinedCents,
+  } = totalCombinedAmount || {
+    totalAmount: 0,
+    totalAmountCents: 0,
+  };
+
+  const adjustedCombinedAmount =
+    totalCombinedTotal + Math.floor(totalCombinedCents / 100);
+  const adjustedCombinedCents = totalCombinedCents % 100;
+
   const selectedBudget = allKennzahlenBudgets?.find(
     (budget) =>
       budget.year === selectedYear &&
@@ -69,12 +102,19 @@ export default function AdminDashboardKennzahlen() {
   const differenceInEuros =
     budgetAmount - (adjustedTotalAmount + adjustedTotalAmountCents / 100);
 
+  const differenceAfterApprovals =
+    budgetAmount -
+    (adjustedCombinedAmount +
+      adjustedCombinedCents / 100 +
+      adjustedTotalAmount +
+      adjustedTotalAmountCents / 100);
+
   const totalApprovedForYear = allKennzahlenInquiries?.reduce(
     (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
-      // if (status === "Genehmigt") {
-      acc.totalAmount += expenseAmount;
-      acc.totalAmountCents += expenseAmountCent;
-      // }
+      if (status === "Genehmigt" || status === "Innerhalb des Budgets") {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
       return acc;
     },
     { totalAmount: 0, totalAmountCents: 0 }
@@ -87,6 +127,26 @@ export default function AdminDashboardKennzahlen() {
     totalYearlyAmount + Math.floor(totalYearlyCents / 100);
   const adjustedYearlyTotalCents = totalYearlyCents % 100;
 
+  const totalApprovedForYearPending = allKennzahlenInquiries?.reduce(
+    (acc, { expenseAmount = 0, expenseAmountCent = 0, status }) => {
+      if (status === "Neu" || status === "In Prüfung") {
+        acc.totalAmount += expenseAmount;
+        acc.totalAmountCents += expenseAmountCent;
+      }
+      return acc;
+    },
+    { totalAmount: 0, totalAmountCents: 0 }
+  );
+
+  const {
+    totalAmount: totalYearlyAmountPending,
+    totalAmountCents: totalYearlyCentsPending,
+  } = totalApprovedForYearPending || { totalAmount: 0, totalAmountCents: 0 };
+
+  const adjustedYearlyTotalAmountPending =
+    totalYearlyAmountPending + Math.floor(totalYearlyCentsPending / 100);
+  const adjustedYearlyTotalCentsPending = totalYearlyCentsPending % 100;
+
   const totalBudgetForYear =
     allKennzahlenBudgets
       ?.filter((budget) => budget.year === selectedYear)
@@ -95,6 +155,13 @@ export default function AdminDashboardKennzahlen() {
   const differenceInEurosForYear =
     totalBudgetForYear -
     (adjustedYearlyTotalAmount + adjustedYearlyTotalCents / 100);
+
+  const yearlyDifferenceAfterApprovals =
+    totalBudgetForYear -
+    (adjustedYearlyTotalAmount +
+      adjustedYearlyTotalCents / 100 +
+      adjustedYearlyTotalAmountPending +
+      adjustedYearlyTotalCentsPending / 100);
 
   const months = [
     "Januar",
@@ -129,7 +196,10 @@ export default function AdminDashboardKennzahlen() {
         (approval) =>
           approval.year === selectedYear &&
           approval.department === selectedDepartment &&
-          months.indexOf(approval.month) + 1 === monthIndex
+          months.indexOf(approval.month) + 1 === monthIndex &&
+          (
+            approval.status === "Innerhalb des Budgets" ||
+            approval.status === "Genehmigt")
       )
       .reduce(
         (acc, { expenseAmount = 0, expenseAmountCent = 0 }) => {
@@ -159,6 +229,39 @@ export default function AdminDashboardKennzahlen() {
     return budgetForMonth?.amount || 0;
   });
 
+  const monthlyApprovedAmountsWithPending = months.map((_, index) => {
+    const monthIndex = index + 1;
+
+    const totalForMonth = yearlyKennzahlenApprovals
+      ?.filter(
+        (approval) =>
+          approval.year === selectedYear &&
+          approval.department === selectedDepartment &&
+          months.indexOf(approval.month) + 1 === monthIndex &&
+          (
+            approval.status === "Innerhalb des Budgets" ||
+            approval.status === "Genehmigt" ||
+            approval.status === "Neu" ||
+            approval.status === "In Prüfung"
+          
+          )
+      )
+      .reduce(
+        (acc, { expenseAmount = 0, expenseAmountCent = 0 }) => {
+          acc.totalAmount += expenseAmount;
+          acc.totalAmountCents += expenseAmountCent;
+          return acc;
+        },
+        { totalAmount: 0, totalAmountCents: 0 }
+      );
+
+    const { totalAmount, totalAmountCents } = totalForMonth || {
+      totalAmount: 0,
+      totalAmountCents: 0,
+    };
+    return totalAmount + totalAmountCents / 100;
+  });
+
   const chartOptions = {
     chart: {
       height: 300,
@@ -172,12 +275,16 @@ export default function AdminDashboardKennzahlen() {
     },
     series: [
       {
-        name: "Augaben",
+        name: "Ausgaben",
         data: monthlyApprovedAmounts,
       },
       {
         name: "Budget",
         data: monthlyBudgets,
+      },
+      {
+        name: "Ausgaben inkl.Ausstehend",
+        data: monthlyApprovedAmountsWithPending,
       },
     ],
     xaxis: {
@@ -214,21 +321,13 @@ export default function AdminDashboardKennzahlen() {
       gradient: {
         shadeIntensity: 1,
         opacityFrom: 0.1,
-        opacityTo: 0.5,
-        gradientToColors: ["#fb6542", "#6ab187"],
-        stops: [
-          [0, "#ffffff", 0.4],
-          [50, "#fb6542", 0.5],
-          [50, "#6ab187", 0.5],
-        ],
+        opacityTo: 0.8,
       },
     },
     stroke: {
       curve: "smooth",
       width: 2,
-      colors: ["#fb6542", "#6ab187"],
     },
-    colors: ["#fb6542", "#6ab187"],
     tooltip: {
       y: {
         formatter: (value) =>
@@ -258,22 +357,22 @@ export default function AdminDashboardKennzahlen() {
           <main>
             <div className="py-6 px-4">
               <div className="mb-4 mt-4 w-full grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
-                  <div className="flex items-center justify-between">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:py-8 xl:px-4">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex-shrink-0">
-                      <h3 className="mb-2 px-2 text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Budget für {selectedMonth}:
                       </h3>
 
                       {budgetAmount === 0 ? (
                         <NavLink
                           to={"/admin/budgetVerwaltenKennzahlen"}
-                          className="text-blue-600 hover:text-blue-800 font-semibold text-2xl rounded-lg px-2 py-2 transition duration-300 ease-in-out hover:bg-blue-100"
+                          className="text-blue-600 hover:text-blue-800 font-semibold text-lg rounded-lg py-2 transition duration-300 ease-in-out"
                         >
                           Budget erstellen
                         </NavLink>
                       ) : (
-                        <span className="px-2 text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                        <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                           {`${budgetAmount.toLocaleString("de-DE", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
@@ -298,10 +397,10 @@ export default function AdminDashboardKennzahlen() {
                     </div>
 
                     <div className="flex-shrink-0 text-left">
-                      <h3 className="mb-2 text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Bisher ausgegeben:
                       </h3>
-                      <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                         {`${totalAmount.toLocaleString("de-DE")},${
                           totalAmountCents === 0
                             ? "00"
@@ -321,6 +420,62 @@ export default function AdminDashboardKennzahlen() {
                         })}€`}
 
                         {differenceInEuros >= 0 ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-shrink-0 text-left">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
+                        Ausstehende Ausgaben:
+                      </h3>
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
+                        {`${adjustedCombinedAmount.toLocaleString("de-DE")},${
+                          adjustedCombinedCents === 0
+                            ? "00"
+                            : adjustedCombinedCents.toString().padStart(2, "0")
+                        }€`}
+                      </span>
+                      <div
+                        className={`${
+                          differenceAfterApprovals >= 0
+                            ? "flex items-center text-green-500 text-base font-bold mt-2"
+                            : "flex items-center text-red-500 text-base font-bold mt-2"
+                        }`}
+                      >
+                        {`${differenceAfterApprovals.toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
+
+                        {differenceAfterApprovals >= 0 ? (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -375,8 +530,9 @@ export default function AdminDashboardKennzahlen() {
                         <span className="text-green-500">
                           {allKennzahlenInquiries?.filter(
                             (approval) =>
-                              approval.status === "Neu" ||
-                              approval.status === "In Prüfung"
+                              (approval.status === "Neu" ||
+                                approval.status === "In Prüfung") &&
+                              approval.month === selectedMonth
                           ).length || 0}
                         </span>
 
@@ -398,11 +554,13 @@ export default function AdminDashboardKennzahlen() {
 
                       <div className="flex items-center mt-1">
                         <span className="text-base font-semibold text-gray-500 mr-2">
-                          Abgeschlossen:
+                          Genehmigt:
                         </span>
                         <span className="text-blue-500">
                           {allKennzahlenInquiries?.filter(
-                            (approval) => approval.status === "Genehmigt"
+                            (approval) =>
+                              approval.status === "Genehmigt" &&
+                              approval.month === selectedMonth
                           ).length || 0}
                         </span>
 
@@ -427,7 +585,9 @@ export default function AdminDashboardKennzahlen() {
                         </span>
                         <span className="text-red-500">
                           {allKennzahlenInquiries?.filter(
-                            (approval) => approval.status === "Abgelehnt"
+                            (approval) =>
+                              approval.status === "Abgelehnt" &&
+                              approval.month === selectedMonth
                           ).length || 0}
                         </span>
 
@@ -452,7 +612,9 @@ export default function AdminDashboardKennzahlen() {
                         </span>
                         <span className="text-indigo-900">
                           {allKennzahlenInquiries?.filter(
-                            (approval) => approval.status === "Innerhalb des Budgets"
+                            (approval) =>
+                              approval.status === "Innerhalb des Budgets" &&
+                              approval.month === selectedMonth
                           ).length || 0}
                         </span>
                         <svg
@@ -469,13 +631,13 @@ export default function AdminDashboardKennzahlen() {
                     </div>
                   </div>
                 </div>
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:py-8 xl:px-4">
                   <div className="flex items-center justify-between">
                     <div className="flex-shrink-0">
-                      <h3 className="mb-2 text-base font-semibold text-gray-500">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Gesamtbudget in {selectedYear}:
                       </h3>
-                      <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                         {`${totalBudgetForYear.toLocaleString("de-DE", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
@@ -497,11 +659,11 @@ export default function AdminDashboardKennzahlen() {
                       </div>
                     </div>
 
-                    <div className="flex-shrink-0 text-left">
-                      <h3 className="mb-2 text-base font-semibold text-gray-500">
+                    <div className="flex-shrink-0">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
                         Bisher ausgegeben:
                       </h3>
-                      <span className="text-2xl sm:text-3xl leading-none font-bold text-gray-900">
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
                         {`${(
                           totalYearlyAmount +
                           totalYearlyCents / 100
@@ -555,11 +717,72 @@ export default function AdminDashboardKennzahlen() {
                         )}
                       </div>
                     </div>
+                    <div className="flex-shrink-0">
+                      <h3 className="mb-2 text-[15px] font-semibold text-gray-500">
+                        Ausstehende Ausgaben:
+                      </h3>
+                      <span className="text-2xl sm:text-2xl leading-none font-bold text-gray-900">
+                        {`${(
+                          adjustedYearlyTotalAmountPending +
+                          adjustedYearlyTotalCentsPending / 100
+                        ).toLocaleString("de-DE", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        })}€`}
+                      </span>
+                      <div
+                        className={`${
+                          yearlyDifferenceAfterApprovals >= 0
+                            ? "flex items-center text-green-500 text-base font-bold mt-2"
+                            : "flex items-center text-red-500 text-base font-bold mt-2"
+                        }`}
+                      >
+                        {`${yearlyDifferenceAfterApprovals.toLocaleString(
+                          "de-DE",
+                          {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          }
+                        )}€`}
+
+                        {yearlyDifferenceAfterApprovals >= 0 ? (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M4.5 10.5 12 3m0 0 7.5 7.5M12 3v18"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth={1.5}
+                            stroke="currentColor"
+                            className="size-5 ml-2"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3"
+                            />
+                          </svg>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-2">
+              <div className="w-full grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-5 gap-4">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8  2xl:col-span-3">
                   <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center">
                       <select
@@ -610,7 +833,7 @@ export default function AdminDashboardKennzahlen() {
                     height={450}
                   />
                 </div>
-                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-8 ">
+                <div className="bg-white shadow rounded-lg p-4 sm:p-6 xl:p-4 2xl:col-span-2">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
                       <h3 className="text-xl font-bold text-gray-900 mb-2">
@@ -633,21 +856,33 @@ export default function AdminDashboardKennzahlen() {
                                 </th>
                                 <th
                                   scope="col"
-                                  className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                  className="p-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
                                 >
                                   Budget
                                 </th>
                                 <th
                                   scope="col"
-                                  className="px-3 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                  className="px-3 py-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
                                 >
                                   Bisher ausgegeben
                                 </th>
                                 <th
                                   scope="col"
-                                  className="p-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                                  className="p-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
                                 >
-                                  Restbetrag
+                                  Betrag
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="p-4 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Ausstehende Ausgaben
+                                </th>
+                                <th
+                                  scope="col"
+                                  className="p-3 text-left text-xs text-center font-medium text-gray-500 uppercase tracking-wider"
+                                >
+                                  Betrag wenn Freigegeben
                                 </th>
                               </tr>
                             </thead>
@@ -655,7 +890,9 @@ export default function AdminDashboardKennzahlen() {
                               {months.map((month) => {
                                 const budget = allKennzahlenBudgets?.find(
                                   (b) =>
-                                    b.year === selectedYear && b.month === month
+                                    b.year === selectedYear &&
+                                    b.month === month &&
+                                    b.department === selectedDepartment
                                 );
                                 const budgetAmount = budget ? budget.amount : 0;
 
@@ -672,17 +909,50 @@ export default function AdminDashboardKennzahlen() {
                                       expenseAmount = 0,
                                       expenseAmountCent = 0,
                                     } = element;
-                                    totalApprovedAmount +=
-                                      expenseAmount + expenseAmountCent / 100;
+
+                                    if (
+                                      element.status === "Genehmigt" ||
+                                      element.status === "Innerhalb des Budgets"
+                                    ) {
+                                      totalApprovedAmount +=
+                                        expenseAmount + expenseAmountCent / 100;
+                                    }
                                   });
                                 }
 
-                                // Calculate the difference between budget and approved amounts
                                 const differenceInEuros =
                                   budgetAmount - totalApprovedAmount;
 
-                                // Format numbers with a dot as thousand separator and comma for decimal
+                                let totalApprovedAmountPending = 0;
+                                if (approved) {
+                                  approved.forEach((element) => {
+                                    const {
+                                      expenseAmount = 0,
+                                      expenseAmountCent = 0,
+                                    } = element;
+
+                                    if (
+                                      element.status === "Neu" ||
+                                      element.status === "In Prüfung"
+                                    ) {
+                                      totalApprovedAmountPending +=
+                                        expenseAmount + expenseAmountCent / 100;
+                                    }
+                                  });
+                                }
+
+                                const differenceWithPending =
+                                  budgetAmount -
+                                  (totalApprovedAmount +
+                                    totalApprovedAmountPending);
+
                                 const formatNumber = (number) =>
+                                  new Intl.NumberFormat("de-DE", {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  }).format(number);
+
+                                const formatNumberPending = (number) =>
                                   new Intl.NumberFormat("de-DE", {
                                     minimumFractionDigits: 2,
                                     maximumFractionDigits: 2,
@@ -709,6 +979,24 @@ export default function AdminDashboardKennzahlen() {
                                       }`}
                                     >
                                       {formatNumber(differenceInEuros) + "€"}
+                                    </td>
+                                    <td className="px-4 py-2 text-center whitespace-nowrap text-sm font-semibold text-gray-500">
+                                      {formatNumber(
+                                        totalApprovedAmountPending
+                                      ) + "€"}
+                                    </td>
+                                    <td
+                                      className={`px-4 py-2 text-center whitespace-nowrap text-sm font-semibold ${
+                                        differenceWithPending < 0
+                                          ? "text-red-500"
+                                          : differenceWithPending === 0
+                                          ? "text-gray-900"
+                                          : "text-green-500"
+                                      }`}
+                                    >
+                                      {formatNumberPending(
+                                        differenceWithPending
+                                      ) + "€"}
                                     </td>
                                   </tr>
                                 );

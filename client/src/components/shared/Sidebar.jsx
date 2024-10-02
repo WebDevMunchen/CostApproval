@@ -1,13 +1,27 @@
 import { NavLink } from "react-router-dom";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "../../context/AuthProvider";
+import axiosClient from "../../utils/axiosClient";
 
 export default function Sidebar() {
-  const { logout, user, allApprovalsAdmin, allLiqudityApprovals } =
+  const { logout, user, allLiqudityApprovals } =
     useContext(AuthContext);
+
+const [allApprovalsAdmin, setAllApprovalsAdmin] = useState(null)
 
   let inquiryCount = 0;
   let liquidityCount = 0;
+
+  useEffect(() =>{
+    axiosClient
+    .get(`/costApproval/getAllApprovals`)
+    .then((response) => {
+      setAllApprovalsAdmin(response.data);
+    })
+    .catch(() => {
+      setAllApprovalsAdmin(null);
+    })
+  }, [])
 
   allApprovalsAdmin?.forEach((element) => {
     if (element.status === "Neu" && element.approver === user.firstName) {
